@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>d3x | Keep It Simple</title>
+    <link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #000; /* Black background */
+            color: #bababa; /* Grey text */
+            font-family: 'Georama', sans-serif; /* Use Georama font */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px 20px 20px; /* Increased top padding */
+            box-sizing: border-box;
+        }
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: url('Images/Avatar.jpg') no-repeat center center/cover;
+            margin-top: 0; /* Removed top margin since padding is now handling alignment */
+            margin-bottom: 10px;
+        }
+        .name {
+            font-size: 1.5em;
+            font-weight: normal; /* Normal weight */
+            margin-bottom: 5px;
+        }
+        .title {
+            font-size: 0.7em; /* Smaller size */
+            color: #bababa; /* Grey text */
+            margin-bottom: 10px;
+        }
+        .bio {
+            font-size: 0.9em;
+            color: #bababa; /* Grey text for bio */
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .link {
+            display: block;
+            width: 80%; /* Updated to 80% width */
+            max-width: 600px;
+            padding: 15px 20px; /* Padding kept the height consistent */
+            margin: 5px 0;
+            background-color: #141414; /* Button color */
+            color: #bababa; /* Grey text */
+            text-decoration: none;
+            font-size: 0.9em; /* Button text size */
+            border-radius: 10px; /* Less rounder */
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s, transform 0.3s;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Shadow for button */
+        }
+        .link:hover {
+            background-color: #1a1a1a; /* Darker shade on hover */
+            transform: translateY(-2px);
+        }
+        .link:active {
+            background-color: #141414; /* Keep the original background color when clicked */
+        }
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .social-icons a {
+            margin: 0 10px;
+            color: #bababa; /* Grey text for social icons */
+            text-decoration: none;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="avatar"></div>
+    <div class="name">Hi, I'm Dexter!</div>
+    <div class="title">Just Some Random Guy On The Internet</div> <!-- Updated title -->
+    <div class="bio">I care about privacy, FOSS, and self-sovereignty. Feel free to reach out—I'm always eager to chat.</div> <!-- Updated bio -->
+    <a href="https://x.com/KillThePID" class="link">Twitter</a>
+    <a href="https://t.me/xWeb3" class="link">Telegram</a>
+    <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN" class="link">Signal</a>
+    <a href="https://github.com/KillThePID" class="link">GitHub</a>
+    <a href="https://www.debian.org/intro/why_debian" class="link">Try Debian</a>
+    <div class="social-icons">
+        <a href="https://x.com/KillThePID"><i class="fab fa-twitter"></i></a>
+        <a href="https://t.me/xWeb3"><i class="fab fa-telegram-plane"></i></a>
+        <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN"><i class="fab fa-phone"></i></a>
+        <a href="https://github.com/KillThePID"><i class="fab fa-github"></i></a>
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>
