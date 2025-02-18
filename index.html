@@ -5,72 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>d3x | Keep It Simple</title>
 
-    <!-- Site Icons (Favicons) -->
+    <!-- Site Icons -->
     <link rel="icon" href="Images/SiteIcon.ico" type="image/x-icon">
     <link rel="icon" href="Images/SiteIcon.png" type="image/png">
     <link rel="icon" href="Images/SiteIcon.svg" type="image/svg+xml">
 
-    <link href="https://fonts.googleapis.com/css2?family=Georama:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
     <style>
+        /* Cyberpunk Theme Colors */
+        :root {
+            --primary-bg: #0a0f1e;
+            --secondary-bg: #141d2f;
+            --text-color: #c3d8ff;
+            --neon-blue: #00bfff;
+            --neon-purple: #a64dff;
+            --glow: rgba(0, 191, 255, 0.7);
+        }
+
+        /* Global Styles */
         body {
-            background-color: #000; /* Black background */
-            color: #bababa; /* Grey text */
-            font-family: 'Georama', sans-serif; /* Use Georama font */
+            background: var(--primary-bg);
+            color: var(--text-color);
+            font-family: 'Orbitron', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
-            padding: 40px 20px 20px 20px; /* Increased top padding */
+            padding: 30px 20px 20px;
             box-sizing: border-box;
         }
+
+        /* Avatar */
         .avatar {
-            width: 115px;
-            height: 115px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             background: url('Images/Avatar.jpg') no-repeat center center/cover;
-            margin-bottom: 10px;
+            box-shadow: 0 0 15px var(--neon-blue);
+            margin-bottom: 15px;
         }
+
+        /* Name & Title */
         .name {
-            font-size: 1.5em;
-            font-weight: normal;
+            font-size: 1.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--neon-purple);
             margin-bottom: 5px;
         }
         .title {
-            font-size: 0.7em;
-            color: #bababa;
+            font-size: 0.8em;
+            color: var(--text-color);
+            opacity: 0.8;
             margin-bottom: 10px;
         }
+
+        /* Bio */
         .bio {
             font-size: 0.9em;
-            color: #bababa;
+            color: var(--text-color);
             max-width: 600px;
             text-align: center;
             margin-bottom: 20px;
         }
+
+        /* Links */
         .link {
             display: block;
             width: 80%;
             max-width: 600px;
-            padding: 15px 20px;
+            padding: 15px;
             margin: 5px 0;
-            background-color: #141414;
-            color: #bababa;
+            background: var(--secondary-bg);
+            color: var(--text-color);
             text-decoration: none;
             font-size: 0.9em;
-            border-radius: 10px;
             text-align: center;
-            transition: background-color 0.3s, color 0.3s, transform 0.3s;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 10px var(--glow);
+            border: 1px solid var(--neon-blue);
         }
         .link:hover {
-            background-color: #1a1a1a;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px var(--neon-blue);
+            background: var(--neon-blue);
+            color: #000;
         }
-        .link:active {
-            background-color: #141414;
-        }
+
+        /* Social Icons */
         .social-icons {
             display: flex;
             justify-content: center;
@@ -78,9 +106,24 @@
         }
         .social-icons a {
             margin: 0 10px;
-            color: #bababa;
-            text-decoration: none;
+            color: var(--text-color);
             font-size: 1.5em;
+            transition: color 0.3s, transform 0.3s;
+        }
+        .social-icons a:hover {
+            color: var(--neon-purple);
+            transform: scale(1.1);
+        }
+
+        /* Debian/Arch Toggle */
+        #osButton {
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        #osButton:hover {
+            box-shadow: 0 0 15px var(--neon-blue);
+            background: var(--neon-blue);
+            color: #000;
         }
     </style>
 </head>
@@ -90,6 +133,7 @@
     <div class="title">Just Some Random Guy On The Internet</div>
     <div class="bio">I care about privacy, FOSS, and self-sovereignty. Feel free to reach out—I'm always eager to chat.</div>
 
+    <!-- Links -->
     <a href="https://x.com/KillThePID" class="link">Twitter</a>
     <a href="https://t.me/xWeb3" class="link">Telegram</a>
     <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN" class="link">Signal</a>
@@ -98,16 +142,16 @@
     <!-- Debian/Arch Toggle Button -->
     <a id="osButton" href="https://www.debian.org/intro/why_debian" class="link">Try Debian</a>
 
+    <!-- Social Icons -->
     <div class="social-icons">
         <a href="https://x.com/KillThePID"><i class="fab fa-twitter"></i></a>
         <a href="https://t.me/xWeb3"><i class="fab fa-telegram-plane"></i></a>
-        <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN"><i class="fab fa-phone"></i></a>
+        <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN"><i class="fas fa-phone"></i></a>
         <a href="https://github.com/KillThePID"><i class="fab fa-github"></i></a>
     </div>
 
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- Debian/Arch Toggle Script -->
     <script>
-        // Button toggle logic for Debian <-> Arch every 30 minutes
         const osButton = document.getElementById("osButton");
         let isDebian = true;
 
@@ -115,14 +159,18 @@
             if (isDebian) {
                 osButton.textContent = "Try Arch";
                 osButton.href = "https://archlinux.org/";
+                osButton.style.border = "1px solid var(--neon-blue)";
+                osButton.style.boxShadow = "0 0 10px var(--neon-blue)";
             } else {
                 osButton.textContent = "Try Debian";
                 osButton.href = "https://www.debian.org/intro/why_debian";
+                osButton.style.border = "1px solid var(--neon-blue)";
+                osButton.style.boxShadow = "0 0 10px var(--neon-blue)";
             }
             isDebian = !isDebian;
         }
 
-        setInterval(toggleButton, 18000000);
+        setInterval(toggleButton, 1000000);
     </script>
 </body>
 </html>
