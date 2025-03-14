@@ -113,17 +113,6 @@
             color: var(--neon-purple);
             transform: scale(1.1);
         }
-
-        /* Debian/Arch Toggle */
-        #osButton {
-            border: 1px solid var(--neon-blue);
-            box-shadow: 0 0 10px var(--neon-blue);
-        }
-        #osButton:hover {
-            box-shadow: 0 0 15px var(--neon-blue);
-            background: var(--neon-blue);
-            color: #000;
-        }
     </style>
 </head>
 <body>
@@ -138,8 +127,8 @@
     <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN" class="link">Signal</a>
     <a href="https://github.com/KillThePID" class="link">GitHub</a>
 
-    <!-- Debian/Arch Toggle Button -->
-    <a id="osButton" href="https://www.debian.org/intro/why_debian" class="link">Try Debian</a>
+    <!-- Projects I Support Button -->
+    <a href="OSS.html" class="link">Projects I Support</a>
 
     <!-- Social Icons -->
     <div class="social-icons">
@@ -148,28 +137,5 @@
         <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN"><i class="fas fa-phone"></i></a>
         <a href="https://github.com/KillThePID"><i class="fab fa-github"></i></a>
     </div>
-
-    <!-- Debian/Arch Toggle Script -->
-    <script>
-        const osButton = document.getElementById("osButton");
-        let isDebian = true;
-
-        function toggleButton() {
-            if (isDebian) {
-                osButton.textContent = "Try Arch";
-                osButton.href = "https://archlinux.org/";
-                osButton.style.border = "1px solid var(--neon-blue)";
-                osButton.style.boxShadow = "0 0 10px var(--neon-blue)";
-            } else {
-                osButton.textContent = "Projects I Support";
-                osButton.href = "OSS.html";
-                osButton.style.border = "1px solid var(--neon-blue)";
-                osButton.style.boxShadow = "0 0 10px var(--neon-blue)";
-            }
-            isDebian = !isDebian;
-        }
-
-        setInterval(toggleButton, 1000000);
-    </script>
 </body>
 </html>
