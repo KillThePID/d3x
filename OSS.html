@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OSS | Keep It Simple</title>
   
-<!-- Site Icons -->
-    <link rel="icon" href="Images/SiteIcon.ico" type="image/x-icon">
-    <link rel="icon" href="Images/SiteIcon.png" type="image/png">
-    <link rel="icon" href="Images/SiteIcon.svg" type="image/svg+xml">
+  <!-- Site Icons -->
+  <link rel="icon" href="Images/SiteIcon.ico" type="image/x-icon">
+  <link rel="icon" href="Images/SiteIcon.png" type="image/png">
+  <link rel="icon" href="Images/SiteIcon.svg" type="image/svg+xml">
   
   <style>
     body {
@@ -42,30 +42,71 @@
     a:hover {
       text-decoration: underline;
     }
+
+    .filter-container {
+      margin-bottom: 20px;
+    }
+
+    #filter-input {
+      background-color: #222;
+      border: 1px solid #444;
+      color: #d3d3d3;
+      padding: 8px;
+      width: 100%;
+      max-width: 300px;
+      font-size: 12px;
+    }
+
+    #filter-input:focus {
+      outline: none;
+      border-color: #00bfff;
+    }
+
+    #filter-input::placeholder {
+      color: #888;
+    }
   </style>
 </head>
 <body>
-
   <main>
+    <div class="filter-container">
+      <input type="text" id="filter-input" placeholder="Filter by word (e.g., VPN, 2FA)">
+    </div>
     <ul id="project-list">
-  <li><a href="https://www.debian.org/"><strong>Debian GNU/Linux</strong></a> is an open-source Linux distribution known for its reliability, extensive software repository, and strong community support. It has been in active development since 1993.</li>
-  <li><a href="https://archlinux.org/"><strong>Arch Linux</strong></a> is an open-source, rolling-release Linux distribution that follows the KISS principle, emphasizing simplicity and minimalism. First released in 2002, it is known for its flexibility and user-centric approach.</li>
-  <li><a href="https://grapheneos.org/"><strong>GrapheneOS</strong></a> is an open-source, privacy and security-focused Android-based OS designed for select devices. It enhances security through advanced exploit mitigations, app isolation, and verified boot. GrapheneOS has been in active development since 2014.</li>
-  <li><a href="https://www.ivpn.net/"><strong>IVPN</strong></a> is a privacy-focused VPN service with a strict no-logs policy, strong security, multi-hop support, and WireGuard protocol. IVPN does not require KYC and accepts cryptocurrency and cash payments. The service has been operating since 2009.</li>
-  <li><a href="https://proton.me/"><strong>Proton</strong></a> provides encrypted email, VPN, cloud storage, and calendar services, ensuring comprehensive online privacy and protection. Proton AG, based in Geneva, Switzerland, has offered privacy-focused services since 2014.</li>
-  <li><a href="https://mullvad.net/"><strong>Mullvad VPN</strong></a> is a privacy-centric VPN with a strict no-logs policy, WireGuard support, independent security audits, and multi-hop functionality. Mullvad does not require KYC and accepts cryptocurrency and cash payments. The service was launched in 2009 and is based in Sweden.</li>
-  <li><a href="https://standardnotes.com/"><strong>Standard Notes</strong></a> is a secure note-taking application with strong end-to-end encryption, ensuring data privacy across multiple platforms. Standard Notes has been in operation since 2017.</li>
-  <li><a href="https://bitwarden.com/"><strong>Bitwarden</strong></a> is an open-source password manager offering end-to-end encryption, cross-device synchronization, and self-hosting options for maximum security and control. It was first released in 2016.</li>
-  <li><a href="https://simplelogin.io/"><strong>SimpleLogin</strong></a> is an open-source service that provides email aliases to protect your real email address from exposure. It allows users to create, manage, and delete aliases for enhanced privacy. SimpleLogin has been operational since 2019.</li>
-  <li><a href="https://www.veracrypt.fr/"><strong>VeraCrypt</strong></a> is an open-source encryption tool offering strong on-the-fly encryption (OTFE) to secure sensitive data. It is a successor to TrueCrypt and has been in active development since 2013.</li>
-  <li><a href="https://brave.com/"><strong>Brave Browser</strong></a> is an open-source web browser designed for private browsing, with built-in tracker blocking, an ad blocker, and optional cryptocurrency-based rewards. Brave was first released in 2016.</li>
-  <li><a href="https://signal.org/"><strong>Signal</strong></a> is an encrypted messaging platform offering secure instant messaging, voice calls, and video calls with end-to-end encryption. Signal has been in operation since 2014 and is developed by the non-profit Signal Foundation.</li>
-  <li><a href="https://www.yubico.com/"><strong>YubiKey</strong></a> is a hardware security key providing secure two-factor authentication, ensuring safe logins for online accounts. Developed by Yubico, YubiKey has been available since 2008 and supports multiple authentication protocols.</li>
-  <li><a href="https://bisq.network/"><strong>Bisq Network</strong></a> is a decentralized platform for buying and selling cryptocurrency privately through peer-to-peer transactions. Bisq is open-source, requires no KYC, and has been operational since 2014.</li>
-  <li><a href="https://cakewallet.com/"><strong>Cake Wallet</strong></a> is an open-source, non-custodial cryptocurrency wallet supporting Bitcoin, Ethereum, Monero, and Litecoin. It gives users full control over their private keys and has been available since 2018.</li>
-  <li><a href="https://railwaywallet.io/"><strong>Railway Wallet</strong></a> is an open-source cryptocurrency wallet built on the RAILGUN privacy network. It utilizes zero-knowledge cryptography for private transactions across Ethereum, BNB Chain, and Polygon. Railway Wallet has been in active development since 2023.</li>
-</ul>
+     <li><a href="https://getaegis.app/"><strong>Aegis</strong></a> is an open-source 2FA app for Android, securing logins with TOTP/HOTP, encrypted backups, biometric unlock, and export options for private authentication.</li>
+      <li><a href="https://archlinux.org/"><strong>Arch Linux</strong></a> is an open-source, rolling-release Linux distribution that follows the KISS principle, emphasizing simplicity and minimalism. This distribution is generally targeted at advanced users seeking customization.</li>
+      <li><a href="https://bisq.network/"><strong>Bisq Network</strong></a> is a decentralized, open-source platform enabling private cryptocurrency trades via peer-to-peer networking, with no KYC for enhanced user anonymity.</li>
+      <li><a href="https://bitwarden.com/"><strong>Bitwarden</strong></a> is an open-source password manager featuring end-to-end encryption, secure sync across devices, and self-hosting for total credential privacy.</li>
+      <li><a href="https://brave.com/"><strong>Brave Browser</strong></a> is an open-source browser blocking trackers and ads, offering Brave Search, HTTPS upgrades, and Tor for private, anonymous browsing.</li>
+      <li><a href="https://cakewallet.com/"><strong>Cake Wallet</strong></a> is an open-source, non-custodial wallet safeguarding Bitcoin, Ethereum, Monero, and Litecoin with user-held private keys for transaction privacy.</li>
+      <li><a href="https://cryptomator.org/"><strong>Cryptomator</strong></a> is an open-source tool encrypting cloud files client-side with AES-256, ensuring privacy; it supports NextCloud and other storage services.</li>
+      <li><a href="https://www.debian.org/"><strong>Debian GNU/Linux</strong></a> is an open-source Linux distribution known for reliability, vast repositories, and community support, offering a stable base for secure systems.</li>
+      <li><a href="https://grapheneos.org/"><strong>GrapheneOS</strong></a> is an open-source Android OS enhancing privacy with app isolation, verified boot, exploit protection, and minimal data exposure on supported devices.</li>
+      <li><a href="https://www.ivpn.net/"><strong>IVPN</strong></a> is a privacy-focused VPN with no logs, WireGuard support, multi-hop routing, and anonymous payments for secure, untracked browsing.</li>
+      <li><a href="https://mullvad.net/"><strong>Mullvad VPN</strong></a> is a privacy-first VPN offering no logs, WireGuard support, multi-hop connections, and anonymous payments, audited for security assurance.</li>
+      <li><a href="https://nextcloud.com/"><strong>NextCloud</strong></a> is an open-source, self-hosted platform with end-to-end encryption, secure file sharing, and privacy tools like calendars and video calls.</li>
+      <li><a href="https://proton.me/"><strong>Proton</strong></a> is a privacy suite with encrypted email, VPN, storage, and calendars, leveraging Swiss laws and zero-knowledge encryption for security.</li>
+      <li><a href="https://railwaywallet.io/"><strong>Railway Wallet</strong></a> is an open-source wallet using zero-knowledge proofs on RAILGUN, ensuring private transactions across Ethereum, BNB Chain, and Polygon.</li>
+      <li><a href="https://signal.org/"><strong>Signal</strong></a> is an open-source messaging app securing texts, calls, and video with end-to-end encryption, minimal metadata, and disappearing messages.</li>
+      <li><a href="https://simplelogin.io/"><strong>SimpleLogin</strong></a> is an open-source service generating email aliases to shield your real address, offering privacy with customizable, disposable aliases.</li>
+      <li><a href="https://standardnotes.com/"><strong>Standard Notes</strong></a> is an open-source note app with end-to-end encryption, secure multi-device sync, and self-hosting for private note-keeping.</li>
+      <li><a href="https://www.thunderbird.net/"><strong>Thunderbird</strong></a> is an open-source email client supporting encrypted messages, privacy extensions, and secure sync with services like NextCloud via CardDAV/CalDAV.</li>
+      <li><a href="https://www.veracrypt.fr/"><strong>VeraCrypt</strong></a> is an open-source encryption tool protecting data with AES-256, hidden volumes, and on-the-fly encryption against unauthorized access.</li>
+      <li><a href="https://www.yubico.com/"><strong>YubiKey</strong></a> is a hardware key strengthening security with phishing-resistant 2FA, supporting FIDO2, U2F, and OTP for account protection.</li>
+    </ul>
   </main>
 
+  <script>
+    // Filter functionality
+    document.getElementById('filter-input').addEventListener('input', function(e) {
+      const filterValue = e.target.value.toLowerCase();
+      const items = document.querySelectorAll('#project-list li');
+
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(filterValue) ? '' : 'none';
+      });
+    });
+  </script>
 </body>
 </html>
