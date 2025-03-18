@@ -13,9 +13,9 @@
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #000;
-      color: #d3d3d3;
-      font-size: 12px;
+      background-color: #000 !important;
+      color: #989998 !important;
+      font-size: 13px;
       margin: 20px;
       padding: 0;
     }
@@ -35,7 +35,7 @@
     }
 
     a {
-      color: #00bfff;
+      color: #066194 !important;
       text-decoration: none;
     }
 
@@ -45,25 +45,29 @@
 
     .filter-container {
       margin-bottom: 20px;
+      width: 100%;
     }
 
     #filter-input {
       background-color: #222;
       border: 1px solid #444;
-      color: #d3d3d3;
+      color: #989998 !important;
       padding: 8px;
       width: 100%;
-      max-width: 300px;
-      font-size: 12px;
+      font-size: 13px;
+      box-sizing: border-box;
+      margin: 0;
+      font-weight: normal; /* Ensure typed text is normal */
     }
 
     #filter-input:focus {
       outline: none;
-      border-color: #00bfff;
+      border-color: #066194;
     }
 
     #filter-input::placeholder {
       color: #888;
+      font-weight: 600; /* Semi-bold for placeholder text */
     }
   </style>
 </head>
@@ -73,7 +77,7 @@
       <input type="text" id="filter-input" placeholder="Filter by word (e.g., VPN, 2FA)">
     </div>
     <ul id="project-list">
-     <li><a href="https://getaegis.app/"><strong>Aegis</strong></a> is an open-source 2FA app for Android, securing logins with TOTP/HOTP, encrypted backups, biometric unlock, and export options for private authentication.</li>
+      <li><a href="https://getaegis.app/"><strong>Aegis</strong></a> is an open-source 2FA app for Android, securing logins with TOTP/HOTP, encrypted backups, biometric unlock, and export options for private authentication.</li>
       <li><a href="https://archlinux.org/"><strong>Arch Linux</strong></a> is an open-source, rolling-release Linux distribution that follows the KISS principle, emphasizing simplicity and minimalism. This distribution is generally targeted at advanced users seeking customization.</li>
       <li><a href="https://bisq.network/"><strong>Bisq Network</strong></a> is a decentralized, open-source platform enabling private cryptocurrency trades via peer-to-peer networking, with no KYC for enhanced user anonymity.</li>
       <li><a href="https://bitwarden.com/"><strong>Bitwarden</strong></a> is an open-source password manager featuring end-to-end encryption, secure sync across devices, and self-hosting for total credential privacy.</li>
@@ -97,7 +101,6 @@
   </main>
 
   <script>
-    // Filter functionality
     document.getElementById('filter-input').addEventListener('input', function(e) {
       const filterValue = e.target.value.toLowerCase();
       const items = document.querySelectorAll('#project-list li');
