@@ -3,13 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>d3x | Keep It Simple</title><!-- Site Icons -->
+    <title>d3x | Keep It Simple</title>
+    <!-- Site Icons -->
     <link rel="icon" href="Images/SiteIcon.ico" type="image/x-icon">
     <link rel="icon" href="Images/SiteIcon.png" type="image/png">
     <link rel="icon" href="Images/SiteIcon.svg" type="image/svg+xml">
 
     <!-- Fonts & Icons -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <!-- Optimized Cache Control for GitHub Pages -->
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
+    <meta http-equiv="Expires" content="Thu, 31 Dec 2026 23:59:59 GMT">
+    <meta http-equiv="Last-Modified" content="Sat, 29 Mar 2025 00:00:00 GMT">
+    <meta http-equiv="ETag" content="v1.0.0">
 
     <style>
         /* Cyberpunk Theme Colors */
@@ -20,6 +27,7 @@
             --neon-blue: #00bfff;
             --neon-purple: #a64dff;
             --glow: rgba(0, 191, 255, 0.7);
+            --dark-grey: #2a2a2a;
         }
 
         /* Global Styles */
@@ -35,6 +43,32 @@
             margin: 0;
             padding: 30px 20px 20px;
             box-sizing: border-box;
+            position: relative;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Source Code Button */
+        .source-code {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 6px;
+            background: var(--dark-grey);
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.8em;
+            text-align: center;
+            border-radius: 5px;
+            transition: transform 0.3s;
+            border: none;
+        }
+        .source-code:hover {
+            transform: translateY(-2px);
+            background: var(--neon-blue);
+            color: #000;
         }
 
         /* Avatar */
@@ -45,6 +79,11 @@
             background: url('Images/Avatar.jpg') no-repeat center center/cover;
             box-shadow: 0 0 15px var(--neon-blue);
             margin-bottom: 15px;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         /* Name & Title */
@@ -110,19 +149,41 @@
             color: var(--neon-purple);
             transform: scale(1.1);
         }
-
     </style>
 
-    <!-- Expiry Headers -->
-    <meta http-equiv="Cache-Control" content="max-age=31536000, public">
-    <meta http-equiv="Expires" content="Thu, 31 Dec 2025 23:59:59 GMT">
-    
+    <!-- Enhanced protection scripts -->
+    <script>
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.classList.contains('avatar')) {
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
+                e.preventDefault();
+            }
+            if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </head>
 <body>
+    <a href="https://github.com/KillThePID/d3x" class="source-code">Source Code</a>
     <div class="avatar"></div>
     <div class="name">Hi, I'm Dexter!</div>
     <div class="title">Just Some Random Guy On The Internet</div>
-    <div class="bio">I care about privacy, FOSS, and self-sovereignty. Feel free to reach out—I'm always eager to chat.</div><!-- Links -->
+    <div class="bio">I care about privacy, FOSS, and self-sovereignty. Feel free to reach out—I'm always eager to chat.</div>
+    <!-- Links -->
     <a href="https://x.com/KillThePID" class="link">Twitter</a>
     <a href="https://t.me/xWeb3" class="link">Telegram</a>
     <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN" class="link">Signal</a>
@@ -138,6 +199,5 @@
         <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN"><i class="fas fa-phone"></i></a>
         <a href="https://github.com/KillThePID"><i class="fab fa-github"></i></a>
     </div>
-
 </body>
 </html>
