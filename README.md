@@ -26,7 +26,3 @@ This project is pure HTML/CSS/JS, so you can host it anywhere that serves static
 
 ## License
 No restrictions—use it, modify it, or adapt it as you wish.
-
----
-
-Fast, simple, and yours to control.
