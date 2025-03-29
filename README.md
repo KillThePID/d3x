@@ -1,6 +1,3 @@
-# d3x
-A simple, static website.
-
 ## Preview
 ![Screenshot](Images/Screenshot.png)
 
@@ -25,4 +22,4 @@ This project is pure HTML/CSS/JS, so you can host it anywhere that serves static
 - **Modify `style` in `index.html`** for design tweaks.
 
 ## License
-No restrictions—use it, modify it, or adapt it as you wish.
+This project is free to use, modify, and distribute without restriction. No attribution is required.
