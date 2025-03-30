@@ -4,19 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>d3x | Keep It Simple</title>
-    <!-- Site Icons -->
-    <link rel="icon" href="Images/SiteIcon.ico" type="image/x-icon">
-    <link rel="icon" href="Images/SiteIcon.png" type="image/png">
-    <link rel="icon" href="Images/SiteIcon.svg" type="image/svg+xml">
+    <!-- Site Icons with Versioning -->
+    <link rel="icon" href="Images/SiteIcon.ico?v=1" type="image/x-icon">
+    <link rel="icon" href="Images/SiteIcon.png?v=1" type="image/png">
+    <link rel="icon" href="Images/SiteIcon.svg?v=1" type="image/svg+xml">
 
     <!-- Fonts & Icons -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js?v=1" crossorigin="anonymous"></script>
 
-    <!-- Optimized Cache Control for GitHub Pages -->
-    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable">
-    <meta http-equiv="Expires" content="Thu, 31 Dec 2026 23:59:59 GMT">
-    <meta http-equiv="Last-Modified" content="Sat, 29 Mar 2025 00:00:00 GMT">
-    <meta http-equiv="ETag" content="v1.0.0">
+    <!-- Optimized Cache Control for HTML -->
+    <meta http-equiv="Cache-Control" content="public, max-age=86400, must-revalidate">
+    <meta http-equiv="Last-Modified" content="Tue, 01 Apr 2025 00:00:00 GMT">
 
     <style>
         /* Cyberpunk Theme Colors */
@@ -41,13 +39,27 @@
             justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
-            padding: 40px 20px 20px;
             box-sizing: border-box;
             position: relative;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            padding: 40px 20px 20px; /* Mobile default */
+        }
+
+        /* Desktop padding (screens 768px and wider) */
+        @media (min-width: 768px) {
+            body {
+                padding: 30px 20px 20px;
+            }
+        }
+
+        /* Mobile padding (screens smaller than 768px) */
+        @media (max-width: 767px) {
+            body {
+                padding: 40px 20px 20px;
+            }
         }
 
         /* Source Code Button */
@@ -76,7 +88,7 @@
             width: 130px;
             height: 130px;
             border-radius: 50%;
-            background: url('Images/Avatar.jpg') no-repeat center center/cover;
+            background: url('Images/Avatar.jpg?v=1') no-repeat center center/cover;
             box-shadow: 0 0 15px var(--neon-blue);
             margin-bottom: 15px;
             pointer-events: none;
