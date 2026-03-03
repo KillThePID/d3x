@@ -1,1149 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en-US"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en-US"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en-US"> <!--<![endif]-->
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>d3x | Keep It Simple</title>
+<title>d3x | Keep It Simple</title>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
   <!-- Site Icons with Versioning -->
   <link rel="icon" href="Images/SiteIcon.ico?v=1" type="image/x-icon">
   <link rel="icon" href="Images/SiteIcon.png?v=1" type="image/png">
   <link rel="icon" href="Images/SiteIcon.svg?v=1" type="image/svg+xml">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
-
-    :root {
-      --green: #00ff41;
-      --green-dim: #00aa2a;
-      --green-faint: #003b0f;
-      --red: #ff0033;
-      --amber: #ffb300;
-      --bg: #030805;
-      --card-bg: rgba(0,255,65,0.02);
-    }
-
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    ::selection { background:var(--green-faint); color:var(--green); }
-
-    html, body {
-      background:var(--bg); color:var(--green);
-      font-family:'Share Tech Mono',monospace; font-size:14px;
-      min-height:100vh; overflow-x:hidden; cursor:none;
-    }
-
-    /* CRT */
-    body::before {
-      content:''; position:fixed; inset:0;
-      background:repeating-linear-gradient(0deg,rgba(0,0,0,0.15) 0px,rgba(0,0,0,0.15) 1px,transparent 1px,transparent 3px);
-      pointer-events:none; z-index:1000; opacity:0.4;
-    }
-    .noise {
-      position:fixed; inset:0; opacity:0.03; pointer-events:none; z-index:998;
-      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    }
-    #tetris-bg { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:0.04; }
-
-    /* ANIMATIONS */
-    @keyframes flicker{0%,95%,100%{opacity:1}96%{opacity:.4}97%{opacity:1}98%{opacity:.1}99%{opacity:1}}
-    @keyframes scanMove{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
-    @keyframes glitch{
-      0%{transform:translate(0);color:var(--green)}
-      25%{transform:translate(-4px,2px);color:var(--red);clip-path:inset(30% 0 40% 0)}
-      50%{transform:translate(4px,-2px);color:var(--amber);clip-path:inset(60% 0 10% 0)}
-      75%{transform:translate(-2px,1px);color:var(--red);clip-path:inset(10% 0 70% 0)}
-      100%{transform:translate(0);color:var(--green);clip-path:none}
-    }
-
-    .scanline-sweep {
-      position:fixed; top:0;left:0;right:0;height:3px;
-      background:linear-gradient(to right,transparent,var(--green),transparent);
-      opacity:.15; animation:scanMove 6s linear infinite;
-      pointer-events:none; z-index:1001;
-    }
-
-    /* TERMINAL BAR */
-    .term-bar {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:6px 20px; border-bottom:1px solid var(--green-dim);
-      background:rgba(0,255,65,.03); animation:flicker 8s infinite;
-      position:relative; z-index:10; gap:12px;
-    }
-    .term-left{display:flex;align-items:center;gap:12px;}
-    .term-dots{display:flex;gap:5px;align-items:center;}
-    .dot{width:13px;height:13px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:bold;color:rgba(0,0,0,.55);cursor:none;line-height:1;}
-    .dot-r{background:#cc3333}.dot-r::after{content:'✕'}
-    .dot-y{background:#cc9900}.dot-y::after{content:'─'}
-    .dot-g{background:#00aa2a}.dot-g::after{content:'□'}
-    .term-info{display:flex;gap:20px;font-size:.75rem;color:var(--green-dim);}
-    .term-info .lbl{color:#004a10;margin-right:3px;}
-    .term-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
-
-    /* TRANSLATE BUTTON */
-    .translate-wrap{position:static;}
-    .translate-btn{
-      display:flex;align-items:center;gap:6px;
-      background:rgba(0,255,65,0.06);border:1px solid var(--green-dim);
-      color:var(--green);font-family:'Share Tech Mono',monospace;
-      font-size:.7rem;letter-spacing:2px;padding:5px 12px;cursor:pointer;
-      transition:border-color .2s,color .2s,background .2s;white-space:nowrap;
-      touch-action:manipulation;
-    }
-    .translate-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
-    .translate-btn:hover,.translate-btn:active{border-color:var(--green);background:rgba(0,255,65,0.12);}
-
-    /* Dropdown injected directly on <body> at runtime — no stacking context issues */
-    #lang-dropdown{
-      position:fixed !important;
-      background:#000000 !important;
-      border:2px solid #00aa2a !important;
-      min-width:220px !important;
-      z-index:2147483647 !important;
-      display:none;
-      flex-direction:column;
-      max-height:70vh;
-      overflow-y:auto;
-      -webkit-overflow-scrolling:touch;
-      box-shadow:0 4px 40px #000000 !important;
-      isolation:isolate;
-    }
-    #lang-dropdown.open{display:flex !important;}
-    .lang-opt{
-      padding:12px 16px;
-      font-size:.75rem;letter-spacing:2px;
-      color:#00dd44 !important;
-      transition:background .1s;
-      border-bottom:1px solid #002200 !important;
-      display:flex;align-items:center;gap:12px;
-      background:#000000 !important;
-      cursor:pointer;
-      -webkit-tap-highlight-color:rgba(0,255,65,0.1);
-    }
-    .lang-opt:last-child{border-bottom:none !important;}
-    .lang-opt .flag{font-size:.95rem;flex-shrink:0;}
-    .lang-opt:active{background:#002800 !important;}
-    @media(hover:hover){.lang-opt:hover{background:#001a00 !important;color:#00ff41 !important;}}
-    .lang-opt.active{color:#00ff41 !important;background:#001500 !important;}
-
-    /* CONTAINER */
-    .container{max-width:960px;margin:0 auto;padding:40px 24px 20px;position:relative;z-index:10;}
-
-    /* LOGO */
-
-    /* SECTION HEADER */
-    .section-header{font-family:'VT323',monospace;font-size:1.6rem;letter-spacing:5px;border-bottom:1px solid var(--green-dim);padding-bottom:8px;margin-bottom:20px;color:var(--green);}
-    .section-header::before{content:'// ';color:var(--green-dim);}
-
-    /* ── INTRO BLOCK ── */
-    .intro-block{
-      position:relative;
-      border:1px solid var(--green-faint);
-      background:var(--card-bg);
-      padding:36px 40px;
-      margin-bottom:40px;
-      overflow:hidden;
-      animation:fadeUp .7s ease both;
-    }
-    /* corner brackets */
-    .intro-block::before,.intro-block::after{
-      content:'';position:absolute;width:18px;height:18px;
-      border-color:var(--green-dim);border-style:solid;
-    }
-    .intro-block::before{top:8px;left:8px;border-width:1px 0 0 1px;}
-    .intro-block::after{bottom:8px;right:8px;border-width:0 1px 1px 0;}
-
-    .intro-hi{
-      font-family:'VT323',monospace;
-      font-size:clamp(2.6rem,6vw,4.2rem);
-      line-height:1;color:var(--green);letter-spacing:6px;
-      margin-bottom:8px;animation:flicker 10s infinite;
-    }
-    .cursor-blink{
-      display:inline-block;width:4px;height:.78em;
-      background:var(--green);animation:blink 1s infinite;
-      vertical-align:middle;margin-left:6px;border-radius:1px;
-    }
-
-    .intro-body{
-      font-size:.88rem;color:#009930;line-height:2;max-width:680px;
-    }
-    .intro-body p{margin-bottom:0;}
-    .intro-body p+p{margin-top:14px;}
-    .hl{color:var(--green);font-weight:bold;}
-    .amb{color:var(--amber);}
-    .rd{color:var(--red);}
-
-    /* decorative side line */
-    .intro-divider{
-      width:100%;height:1px;
-      background:linear-gradient(to right,var(--green-faint),var(--green-dim),var(--green-faint));
-      margin:24px 0;opacity:.6;
-    }
-
-    .intro-name{
-      font-family:'VT323',monospace;
-      font-size:clamp(1.6rem,3.5vw,2.6rem);
-      letter-spacing:8px;color:var(--green-dim);
-      display:flex;align-items:center;gap:0;
-    }
-    .intro-name-prefix{color:var(--red);margin-right:10px;}
-    .intro-name-text{color:var(--green);}
-
-    /* SOCIALS GRID */
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--green-dim);border:1px solid var(--green-dim);margin-bottom:40px;}
-    .grid-cell{background:var(--bg);padding:24px 22px 20px;transition:background .2s;position:relative;overflow:hidden;animation:fadeUp .8s ease both;text-decoration:none;display:flex;flex-direction:column;align-items:flex-start;color:inherit;outline:none;user-select:none;cursor:none;}
-    .grid-cell:nth-child(2){animation-delay:.1s}
-    .grid-cell:nth-child(3){animation-delay:.2s}
-    .grid-cell:nth-child(4){animation-delay:.3s}
-    @media(hover:hover){
-      .grid-cell:hover{background:var(--green-faint);}
-      .grid-cell:hover .signal-icon{filter:brightness(0) saturate(100%) invert(57%) sepia(97%) saturate(400%) hue-rotate(90deg) brightness(120%);}
-      .grid-cell:hover .cell-label{color:var(--green);}
-      .grid-cell:hover .cell-icon svg{fill:var(--green);filter:drop-shadow(0 0 8px var(--green));}
-    }
-    .grid-cell:focus,.grid-cell:active{background:var(--bg);outline:none;}
-    .cell-top{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
-    .cell-icon{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:34px;height:34px;}
-    .cell-icon svg{width:34px;height:34px;fill:var(--green-dim);transition:fill .2s,filter .2s;display:block;}
-    .cell-label{font-family:'VT323',monospace;font-size:1.45rem;letter-spacing:4px;color:var(--green-dim);transition:color .2s;line-height:1;}
-    .cell-label::before{content:'> ';color:var(--red);}
-    .cell-handle{font-size:.72rem;color:#004a10;letter-spacing:1px;}
-
-    /* PGP */
-    .pgp-wrapper{position:relative;width:100%;margin-top:6px;}
-    .pgp-block{font-size:.64rem;color:#005a18;line-height:1.8;word-break:break-all;border:1px solid var(--green-faint);padding:8px 34px 8px 8px;background:rgba(0,255,65,.02);}
-    .pgp-copy{position:absolute;top:7px;right:7px;background:none;border:none;cursor:pointer;touch-action:manipulation;padding:2px;line-height:1;display:flex;align-items:center;justify-content:center;}
-    .pgp-copy svg{width:14px;height:14px;fill:none;stroke:#005a18;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s;}
-    @media(hover:hover){.pgp-copy:hover svg{stroke:var(--green);filter:drop-shadow(0 0 4px var(--green));}}
-    .pgp-copy.copied svg{stroke:var(--green);}
-    .pgp-copy::after{content:'COPIED';position:absolute;right:20px;top:0;font-size:.55rem;color:var(--green);letter-spacing:1px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
-    .pgp-copy.copied::after{opacity:1;}
-
-    /* THINGS I ENJOY */
-    .sw-grid{border:1px solid var(--green-faint);background:var(--card-bg);margin-bottom:40px;}
-    .sw-items{display:grid;grid-template-columns:repeat(2,1fr);gap:0;}
-    @media(max-width:600px){.sw-items{grid-template-columns:1fr;}}
-
-    .enjoy-title{
-      font-family:'VT323',monospace;font-size:1.35rem;letter-spacing:4px;
-      color:var(--amber);margin-bottom:14px;
-      display:flex;align-items:center;gap:8px;
-    }
-    .enjoy-title::before{content:'[ ';color:#554400;}
-    .enjoy-title::after{content:' ]';color:#554400;}
-    .enjoy-icon{font-style:normal;}
-
-    .enjoy-item{
-      font-size:.76rem;color:#006820;padding:5px 0;
-      border-bottom:1px solid rgba(0,255,65,.05);line-height:1.6;
-    }
-    .enjoy-item:last-child{border-bottom:none;}
-    .enjoy-item::before{content:'→ ';color:var(--green-dim);}
-
-    .sw-item{
-      padding:12px 18px;
-      border-bottom:1px solid rgba(0,255,65,0.05);
-      border-right:1px solid rgba(0,255,65,0.05);
-      display:flex;flex-direction:column;gap:4px;
-      transition:background .15s;
-    }
-    .sw-item:nth-child(even){border-right:none;}
-    @media(hover:hover){.sw-item:hover{background:var(--green-faint);}}
-    .sw-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-    .sw-name{
-      font-family:'VT323',monospace;font-size:1.1rem;
-      letter-spacing:3px;color:var(--amber);line-height:1;flex-shrink:0;
-    }
-    .sw-name::before{content:'→ ';color:var(--green-dim);}
-    .sw-links{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-    .sw-link{
-      display:flex;align-items:center;justify-content:center;
-      width:18px;height:18px;opacity:.35;
-      transition:opacity .15s,filter .15s;
-      text-decoration:none;
-      cursor:none;
-    }
-    @media(hover:hover){.sw-link:hover{opacity:1;filter:drop-shadow(0 0 5px var(--green));}}
-    .sw-link img{width:13px;height:13px;display:block;}
-    .sw-desc{font-size:.72rem;color:#006820;line-height:1.5;}
-    /* MANIFESTO */
-    .manifesto{border-left:3px solid var(--green-dim);padding-left:20px;margin-bottom:20px;}
-    .manifesto p{color:#009930;line-height:2;margin-bottom:10px;font-size:.88rem;}
-    .manifesto p::before{content:'— ';color:var(--green-dim);}
-    .manifesto .highlight{color:var(--green);font-weight:bold;}
-    .manifesto .red{color:var(--red);}
-    .manifesto .amber{color:var(--amber);}
-
-    /* FOOTER */
-    .site-footer{text-align:center;padding:16px 24px;border-top:1px solid var(--green-faint);font-size:.72rem;color:#004010;letter-spacing:2px;position:relative;z-index:10;animation:flicker 14s infinite;}
-
-    /* RESPONSIVE */
-    @media(max-width:900px){
-      .term-info span:last-child{display:none;}
-    }
-    @media(max-width:700px){
-      .grid{grid-template-columns:1fr;}
-      .crypto-row{grid-template-columns:1fr;}
-      .term-info{gap:10px;font-size:.68rem;}
-      .term-info span:nth-child(2){display:none;}
-      .container{padding:24px 16px 16px;}
-      .intro-block{padding:24px 20px;}
-    }
-    @media(max-width:480px){
-      .term-info{display:none;}
-      .intro-hi{font-size:2rem;}
-    }
-    @media(min-width:1280px){
-      .container{max-width:1080px;}
-    }
-    @media(min-width:1600px){
-      .container{max-width:1200px;}
-      .intro-hi{font-size:5rem;}
-    }
-  </style>
+<style>
+.container{width:100%}.bg-white{--bg-opacity:1;background-color:#fff;background-color:rgba(255,255,255,var(--bg-opacity))}.bg-center{background-position:50%}.bg-no-repeat{background-repeat:no-repeat}.border-gray-300{--border-opacity:1;border-color:#ebebeb;border-color:rgba(235,235,235,var(--border-opacity))}.rounded{border-radius:.25rem}.border-solid{border-style:solid}.border-0{border-width:0}.border{border-width:1px}.border-t{border-top-width:1px}.cursor-pointer{cursor:pointer}.block{display:block}.inline-block{display:inline-block}.table{display:table}.hidden{display:none}.float-left{float:left}.clearfix:after{content:"";display:table;clear:both}.font-mono{font-family:monaco,courier,monospace}.font-light{font-weight:300}.font-normal{font-weight:400}.font-semibold{font-weight:600}.h-12{height:3rem}.h-20{height:5rem}.text-13{font-size:13px}.text-15{font-size:15px}.text-60{font-size:60px}.text-2xl{font-size:1.5rem}.text-3xl{font-size:1.875rem}.leading-tight{line-height:1.25}.leading-normal{line-height:1.5}.leading-relaxed{line-height:1.625}.leading-1\.3{line-height:1.3}.my-8{margin-top:2rem;margin-bottom:2rem}.mx-auto{margin-left:auto;margin-right:auto}.mr-2{margin-right:.5rem}.mb-2{margin-bottom:.5rem}.mt-3{margin-top:.75rem}.mb-4{margin-bottom:1rem}.ml-4{margin-left:1rem}.mt-6{margin-top:1.5rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mb-10{margin-bottom:2.5rem}.ml-10{margin-left:2.5rem}.mb-15{margin-bottom:3.75rem}.-ml-6{margin-left:-1.5rem}.overflow-hidden{overflow:hidden}.p-0{padding:0}.py-2{padding-top:.5rem;padding-bottom:.5rem}.px-4{padding-left:1rem;padding-right:1rem}.py-8{padding-top:2rem;padding-bottom:2rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-15{padding-top:3.75rem;padding-bottom:3.75rem}.pr-6{padding-right:1.5rem}.pt-10{padding-top:2.5rem}.absolute{position:absolute}.relative{position:relative}.left-1\/2{left:50%}.-bottom-4{bottom:-1rem}.resize{resize:both}.text-center{text-align:center}.text-black-dark{--text-opacity:1;color:#404040;color:rgba(64,64,64,var(--text-opacity))}.text-gray-600{--text-opacity:1;color:#999;color:rgba(153,153,153,var(--text-opacity))}.text-red-error{--text-opacity:1;color:#bd2426;color:rgba(189,36,38,var(--text-opacity))}.text-green-success{--text-opacity:1;color:#9bca3e;color:rgba(155,202,62,var(--text-opacity))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.w-12{width:3rem}.w-240{width:60rem}.w-1\/2{width:50%}.w-1\/3{width:33.333333%}.w-full{width:100%}.transition{-webkit-transition-property:background-color,border-color,color,fill,stroke,opacity,box-shadow,-webkit-transform;transition-property:background-color,border-color,color,fill,stroke,opacity,box-shadow,-webkit-transform;transition-property:background-color,border-color,color,fill,stroke,opacity,box-shadow,transform;transition-property:background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,-webkit-transform}body,html{--text-opacity:1;color:#404040;color:rgba(64,64,64,var(--text-opacity));-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-size:16px}*,body,html{margin:0;padding:0}*{box-sizing:border-box}a{--text-opacity:1;color:#2f7bbf;color:rgba(47,123,191,var(--text-opacity));text-decoration:none;-webkit-transition-property:all;transition-property:all;-webkit-transition-duration:.15s;transition-duration:.15s;-webkit-transition-timing-function:cubic-bezier(0,0,.2,1);transition-timing-function:cubic-bezier(0,0,.2,1)}a:hover{--text-opacity:1;color:#f68b1f;color:rgba(246,139,31,var(--text-opacity))}img{display:block;width:100%;height:auto}#what-happened-section p{font-size:15px;line-height:1.5}strong{font-weight:600}.bg-gradient-gray{background-image:-webkit-linear-gradient(top,#dedede,#ebebeb 3%,#ebebeb 97%,#dedede)}.cf-error-source:after{position:absolute;--bg-opacity:1;background-color:#fff;background-color:rgba(255,255,255,var(--bg-opacity));width:2.5rem;height:2.5rem;--transform-translate-x:0;--transform-translate-y:0;--transform-rotate:0;--transform-skew-x:0;--transform-skew-y:0;--transform-scale-x:1;--transform-scale-y:1;-webkit-transform:translateX(var(--transform-translate-x)) translateY(var(--transform-translate-y)) rotate(var(--transform-rotate)) skewX(var(--transform-skew-x)) skewY(var(--transform-skew-y)) scaleX(var(--transform-scale-x)) scaleY(var(--transform-scale-y));-ms-transform:translateX(var(--transform-translate-x)) translateY(var(--transform-translate-y)) rotate(var(--transform-rotate)) skewX(var(--transform-skew-x)) skewY(var(--transform-skew-y)) scaleX(var(--transform-scale-x)) scaleY(var(--transform-scale-y));transform:translateX(var(--transform-translate-x)) translateY(var(--transform-translate-y)) rotate(var(--transform-rotate)) skewX(var(--transform-skew-x)) skewY(var(--transform-skew-y)) scaleX(var(--transform-scale-x)) scaleY(var(--transform-scale-y));--transform-rotate:45deg;content:"";bottom:-1.75rem;left:50%;margin-left:-1.25rem;box-shadow:0 0 4px 4px #dedede}@media screen and (max-width:720px){.cf-error-source:after{display:none}}.cf-icon-browser{background-image:url(data:image/svg+xml;utf8,%3Csvg%20id%3D%22a%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%2080.7362%22%3E%3Cpath%20d%3D%22M89.8358.1636H10.1642C4.6398.1636.1614%2C4.6421.1614%2C10.1664v60.4033c0%2C5.5244%2C4.4784%2C10.0028%2C10.0028%2C10.0028h79.6716c5.5244%2C0%2C10.0027-4.4784%2C10.0027-10.0028V10.1664c0-5.5244-4.4784-10.0028-10.0027-10.0028ZM22.8323%2C9.6103c1.9618%2C0%2C3.5522%2C1.5903%2C3.5522%2C3.5521s-1.5904%2C3.5522-3.5522%2C3.5522-3.5521-1.5904-3.5521-3.5522%2C1.5903-3.5521%2C3.5521-3.5521ZM12.8936%2C9.6103c1.9618%2C0%2C3.5522%2C1.5903%2C3.5522%2C3.5521s-1.5904%2C3.5522-3.5522%2C3.5522-3.5521-1.5904-3.5521-3.5522%2C1.5903-3.5521%2C3.5521-3.5521ZM89.8293%2C70.137H9.7312V24.1983h80.0981v45.9387ZM89.8293%2C16.1619H29.8524v-5.999h59.977v5.999Z%22%20style%3D%22fill%3A%20%23999%3B%22/%3E%3C/svg%3E)}.cf-icon-cloud{background-image:url(data:image/svg+xml;utf8,%3Csvg%20id%3D%22a%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20152%2078.9141%22%3E%3Cpath%20d%3D%22M132.2996%2C77.9927v-.0261c10.5477-.2357%2C19.0305-8.8754%2C19.0305-19.52%2C0-10.7928-8.7161-19.5422-19.4678-19.5422-2.9027%2C0-5.6471.6553-8.1216%2C1.7987C123.3261%2C18.6624%2C105.3419.9198%2C83.202.9198c-17.8255%2C0-32.9539%2C11.5047-38.3939%2C27.4899-3.0292-2.2755-6.7818-3.6403-10.8622-3.6403-10.0098%2C0-18.1243%2C8.1145-18.1243%2C18.1243%2C0%2C1.7331.258%2C3.4033.7122%2C4.9905-.2899-.0168-.5769-.0442-.871-.0442-8.2805%2C0-14.993%2C6.7503-14.993%2C15.0772%2C0%2C8.2795%2C6.6381%2C14.994%2C14.8536%2C15.0701v.0054h.1069c.0109%2C0%2C.0215.0016.0325.0016s.0215-.0016.0325-.0016%22%20style%3D%22fill%3A%20%23999%3B%22/%3E%3C/svg%3E)}.cf-icon-server{background-image:url(data:image/svg+xml;utf8,%3Csvg%20id%3D%22a%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2095%2075%22%3E%3Cpath%20d%3D%22M94.0103%2C45.0775l-12.9885-38.4986c-1.2828-3.8024-4.8488-6.3624-8.8618-6.3619l-49.91.0065c-3.9995.0005-7.556%2C2.5446-8.8483%2C6.3295L1.0128%2C42.8363c-.3315.971-.501%2C1.9899-.5016%2C3.0159l-.0121%2C19.5737c-.0032%2C5.1667%2C4.1844%2C9.3569%2C9.3513%2C9.3569h75.2994c5.1646%2C0%2C9.3512-4.1866%2C9.3512-9.3512v-17.3649c0-1.0165-.1657-2.0262-.4907-2.9893ZM86.7988%2C65.3097c0%2C1.2909-1.0465%2C2.3374-2.3374%2C2.3374H9.9767c-1.2909%2C0-2.3374-1.0465-2.3374-2.3374v-18.1288c0-1.2909%2C1.0465-2.3374%2C2.3374-2.3374h74.4847c1.2909%2C0%2C2.3374%2C1.0465%2C2.3374%2C2.3374v18.1288Z%22%20style%3D%22fill%3A%20%23999%3B%22/%3E%3Ccircle%20cx%3D%2274.6349%22%20cy%3D%2256.1889%22%20r%3D%224.7318%22%20style%3D%22fill%3A%20%23999%3B%22/%3E%3Ccircle%20cx%3D%2259.1472%22%20cy%3D%2256.1889%22%20r%3D%224.7318%22%20style%3D%22fill%3A%20%23999%3B%22/%3E%3C/svg%3E)}.cf-icon-ok{background-image:url(data:image/svg+xml;utf8,%3Csvg%20id%3D%22a%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Ccircle%20cx%3D%2224%22%20cy%3D%2224%22%20r%3D%2223.4815%22%20style%3D%22fill%3A%20%239bca3e%3B%22/%3E%3Cpolyline%20points%3D%2217.453%2024.9841%2021.7183%2030.4504%2030.2076%2016.8537%22%20style%3D%22fill%3A%20none%3B%20stroke%3A%20%23fff%3B%20stroke-linecap%3A%20round%3B%20stroke-linejoin%3A%20round%3B%20stroke-width%3A%204px%3B%22/%3E%3C/svg%3E)}.cf-icon-error{background-image:url(data:image/svg+xml;utf8,%3Csvg%20id%3D%22a%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2047.9145%2047.9641%22%3E%3Ccircle%20cx%3D%2223.9572%22%20cy%3D%2223.982%22%20r%3D%2223.4815%22%20style%3D%22fill%3A%20%23bd2426%3B%22/%3E%3Cline%20x1%3D%2219.0487%22%20y1%3D%2219.0768%22%20x2%3D%2227.8154%22%20y2%3D%2228.8853%22%20style%3D%22fill%3A%20none%3B%20stroke%3A%20%23fff%3B%20stroke-linecap%3A%20round%3B%20stroke-linejoin%3A%20round%3B%20stroke-width%3A%203px%3B%22/%3E%3Cline%20x1%3D%2227.8154%22%20y1%3D%2219.0768%22%20x2%3D%2219.0487%22%20y2%3D%2228.8853%22%20style%3D%22fill%3A%20none%3B%20stroke%3A%20%23fff%3B%20stroke-linecap%3A%20round%3B%20stroke-linejoin%3A%20round%3B%20stroke-width%3A%203px%3B%22/%3E%3C/svg%3E)}#cf-wrapper .feedback-hidden{display:none}#cf-wrapper .feedback-success{min-height:33px;line-height:33px}#cf-wrapper .cf-button{color:#0051c3;font-size:13px;border-color:#0045a6;-webkit-transition-timing-function:ease;transition-timing-function:ease;-webkit-transition-duration:.2s;transition-duration:.2s;-webkit-transition-property:background-color,border-color,color;transition-property:background-color,border-color,color}#cf-wrapper .cf-button:hover{color:#fff;background-color:#003681}.cf-error-footer .hidden{display:none}.cf-error-footer .cf-footer-ip-reveal-btn{-webkit-appearance:button;-moz-appearance:button;appearance:button;text-decoration:none;
+background:none;color:inherit;border:none;padding:0;font:inherit;cursor:pointer;color:#0051c3;-webkit-transition:color .15s ease;transition:color .15s ease}.cf-error-footer .cf-footer-ip-reveal-btn:hover{color:#ee730a}.w-240{width:100%;max-width:960px}.code-label{background-color:#d9d9d9;color:#313131;font-weight:500;border-radius:1.25rem;font-size:.75rem;line-height:4.5rem;padding:.25rem .5rem;height:4.5rem;white-space:nowrap;vertical-align:middle}@media (max-width:639px){.sm\:block{display:block}.sm\:hidden{display:none}.sm\:mb-1{margin-bottom:.25rem}.sm\:mb-2{margin-bottom:.5rem}.sm\:py-4{padding-top:1rem;padding-bottom:1rem}.sm\:px-8{padding-left:2rem;padding-right:2rem}.sm\:text-left{text-align:left}}@media (max-width:720px){.md\:border-gray-400{--border-opacity:1;border-color:#dedede;border-color:rgba(222,222,222,var(--border-opacity))}.md\:border-solid{border-style:solid}.md\:border-0{border-width:0}.md\:border-b{border-bottom-width:1px}.md\:block{display:block}.md\:inline-block{display:inline-block}.md\:hidden{display:none}.md\:float-none{float:none}.md\:text-3xl{font-size:1.875rem}.md\:m-0{margin:0}.md\:mt-0{margin-top:0}.md\:mb-2{margin-bottom:.5rem}.md\:p-0{padding:0}.md\:py-8{padding-top:2rem;padding-bottom:2rem}.md\:px-8{padding-left:2rem;padding-right:2rem}.md\:pr-0{padding-right:0}.md\:pb-10{padding-bottom:2.5rem}.md\:top-0{top:0}.md\:right-0{right:0}.md\:left-auto{left:auto}.md\:text-left{text-align:left}.md\:w-full{width:100%}}@media (max-width:1023px){.lg\:text-sm{font-size:.875rem}.lg\:text-2xl{font-size:1.5rem}.lg\:text-4xl{font-size:2.25rem}.lg\:leading-relaxed{line-height:1.625}.lg\:px-8{padding-left:2rem;padding-right:2rem}.lg\:pt-6{padding-top:1.5rem}.lg\:w-full{width:100%}}
+</style>
 </head>
 <body>
+<div id="cf-wrapper">
+    <div id="cf-error-details" class="p-0">
+        <header class="mx-auto pt-10 lg:pt-6 lg:px-8 w-240 lg:w-full mb-8">
+            <h1 class="inline-block sm:block sm:mb-2 font-light text-60 lg:text-4xl text-black-dark leading-tight mr-2">
+                <span class="inline-block">Internal server error or something</span>
+                <span class="code-label">Error code 500</span>
+            </h1>
+            <div>
+                Visit <a href="https://www.cloudflare.com/" target="_blank" rel="noopener noreferrer">cloudflare.com</a> for more information.
+            </div>
+            <div class="mt-3" id="cf-timestamp">2026-03-03 00:00:00 UTC</div>
+        </header>
 
-<canvas id="tetris-bg"></canvas>
-<div class="noise"></div>
-<div class="scanline-sweep"></div>
+        <div class="my-8 bg-gradient-gray">
+            <div class="w-240 lg:w-full mx-auto">
+                <div class="clearfix md:px-8">
 
-<!-- TERMINAL BAR -->
-<div class="term-bar">
-  <div class="term-left">
-    <div class="term-dots">
-      <div class="dot dot-r"></div>
-      <div class="dot dot-y"></div>
-      <div class="dot dot-g"></div>
-    </div>
-    <div class="term-info">
-      <span><span class="lbl">DATE:</span><span id="date-display">--/--/----</span></span>
-      <span><span class="lbl">TIME:</span><span id="clock">00:00:00</span> UTC</span>
-      <span><span class="lbl">IP:</span><span id="ip-display">resolving...</span></span>
-    </div>
-  </div>
-  <div class="term-right">
-    <div class="translate-wrap">
-      <button class="translate-btn" id="translate-btn" aria-label="Change language">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <span id="lang-label">EN</span>
-        <span style="font-size:.6rem;opacity:.5;">▼</span>
-      </button>
+                    <!-- Browser -->
+                    <div id="cf-browser-status" class="relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center">
+                        <div class="relative mb-10 md:m-0">
+                            <span class="cf-icon-browser block md:hidden h-20 bg-center bg-no-repeat"></span>
+                            <span class="cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4"></span>
+                        </div>
+                        <span class="md:block w-full truncate">You</span>
+                        <h3 class="md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3">Browser</h3>
+                        <span class="leading-1.3 text-2xl" style="color:#9bca3e">Working</span>
+                    </div>
+
+                    <!-- Cloudflare -->
+                    <div id="cf-cloudflare-status" class="cf-error-source relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center">
+                        <div class="relative mb-10 md:m-0">
+                            <span class="cf-icon-cloud block md:hidden h-20 bg-center bg-no-repeat"></span>
+                            <span class="cf-icon-error w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4"></span>
+                        </div>
+                        <span class="md:block w-full truncate">Narnia</span>
+                        <h3 class="md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3" style="color:#2f7bbf;">Cloudflare</h3>
+                        <span class="leading-1.3 text-2xl" style="color:#bd2426">Error</span>
+                    </div>
+
+                    <!-- Host -->
+                    <div id="cf-host-status" class="relative w-1/3 md:w-full py-15 md:p-0 md:py-8 md:text-left md:border-solid md:border-0 md:border-b md:border-gray-400 overflow-hidden float-left md:float-none text-center">
+                        <div class="relative mb-10 md:m-0">
+                            <span class="cf-icon-server block md:hidden h-20 bg-center bg-no-repeat"></span>
+                            <span class="cf-icon-ok w-12 h-12 absolute left-1/2 md:left-auto md:right-0 md:top-0 -ml-6 -bottom-4"></span>
+                        </div>
+                        <span class="md:block w-full truncate">d3x.im</span>
+                        <h3 class="md:inline-block mt-3 md:mt-0 text-2xl text-gray-600 font-light leading-1.3">Host</h3>
+                        <span class="leading-1.3 text-2xl" style="color:#9bca3e">Working</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="w-240 lg:w-full mx-auto mb-8 lg:px-8">
+            <div class="clearfix">
+                <div class="w-1/2 md:w-full float-left pr-6 md:pb-10 md:pr-0 leading-relaxed">
+                    <h2 class="text-3xl font-normal leading-1.3 mb-2">What happened?</h2>
+                    No clue — nobody knows what happened. Do you?
+                </div>
+                <div class="w-1/2 md:w-full float-left leading-relaxed">
+                    <h2 class="text-3xl font-normal leading-1.3 mb-2">What can I do?</h2>
+                    Not sure. Try contacting the site owner on <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN" target="_blank" rel="noopener noreferrer">Signal</a> or <a href="https://t.me/xweb3" target="_blank" rel="noopener noreferrer">Telegram</a>.
+                </div>
+            </div>
+        </div>
+
+        <div class="cf-error-footer cf-wrapper w-240 lg:w-full py-10 sm:py-4 sm:px-8 mx-auto text-center sm:text-left border-solid border-0 border-t border-gray-300">
+            <p class="text-13">
+                <span class="cf-footer-item sm:block sm:mb-1">Ray ID: <strong class="font-semibold" id="cf-ray-id">0123456789abcdef</strong></span>
+                <span class="cf-footer-separator sm:hidden">&bull;</span>
+                <span id="cf-footer-item-ip" class="cf-footer-item hidden sm:block sm:mb-1">
+                    Your IP:
+                    <button type="button" id="cf-footer-ip-reveal" class="cf-footer-ip-reveal-btn">Click to reveal</button>
+                    <span class="hidden" id="cf-footer-ip">1.1.1.1</span>
+                    <span class="cf-footer-separator sm:hidden">&bull;</span>
+                </span>
+                <span class="cf-footer-item sm:block sm:mb-1"><span>Performance &amp; security by</span> <a rel="noopener noreferrer" href="https://www.cloudflare.com/" id="brand_link" target="_blank">Cloudflare</a></span>
+            </p>
+        </div>
 
     </div>
-  </div>
 </div>
-
-<div class="container">
-
-  <!-- INTRO -->
-  <div class="intro-block">
-    <div class="intro-hi" data-i18n="intro-hi">HI THERE<span class="cursor-blink"></span></div>
-    <div class="intro-body">
-      <p data-i18n="intro-p1">I'm Dexter. I currently work as an operations manager in the cryptocurrency space. I'm a strong advocate for open-source software and a firm believer in digital privacy. Are you building something cool? Feel free to reach out.</p>
-    </div>
-  </div>
-
-  <!-- MY SOCIALS -->
-  <div class="section-header" data-i18n="sh-socials">MY SOCIALS</div>
-  <div class="grid">
-    <a href="https://signal.me/#eu/DuIfinUa6saAjn-oQs00ksGdY7i7y6LnYBQZQk9YlnAilNcZZMBEK4OVGrn4QmTN" target="_blank" rel="noopener" class="grid-cell">
-      <div class="cell-top">
-        <div class="cell-icon" style="background:none;"><img src="https://cdn.simpleicons.org/signal/00aa2a" alt="Signal" style="width:34px;height:34px;display:block;transition:filter .2s;" class="signal-icon"></div>
-        <div class="cell-label" data-i18n="lbl-signal">SIGNAL</div>
-      </div>
-      <div class="cell-handle">@UID.15</div>
-    </a>
-    <a href="https://x.com/KillThePID" target="_blank" rel="noopener" class="grid-cell">
-      <div class="cell-top">
-        <div class="cell-icon"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></div>
-        <div class="cell-label" data-i18n="lbl-twitter">TWITTER</div>
-      </div>
-      <div class="cell-handle">@KillThePID</div>
-    </a>
-    <a href="https://t.me/xWeb3" target="_blank" rel="noopener" class="grid-cell">
-      <div class="cell-top">
-        <div class="cell-icon"><svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/></svg></div>
-        <div class="cell-label" data-i18n="lbl-telegram">TELEGRAM</div>
-      </div>
-      <div class="cell-handle">@xWeb3</div>
-    </a>
-    <div class="grid-cell">
-      <div class="cell-top">
-        <div class="cell-icon"><svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 8c2 0 6 1 6 3v1H6v-1c0-2 4-3 6-3z"/></svg></div>
-        <div class="cell-label" data-i18n="lbl-pgp">PGP KEY</div>
-      </div>
-      <div class="pgp-wrapper">
-        <div class="pgp-block" id="pgp-text">-----BEGIN PGP PUBLIC KEY BLOCK-----
-
-mDMEaaVT6hYJKwYBBAHaRw8BAQdAebg4l4iw2RoBRmVvt0ErT3txQlFzbh3ovFhY
-m1d6unS0D2QzeCA8c3VAZDN4LmltPohyBBMWCAAaBAsJCAcCFQgCFgECGQEFgmml
-U+oCngECmwMACgkQYMcfRpgzn0oQDQEA+5e95Dp2Ef62/2V/FXZwv/Dk5/u4D2ND
-b6lPjKRWl6EBAPCdzybWvR1IC+35jWSW/mApyl6Ur5D0w33UkIGLq0kDuDgEaaVT
-6hIKKwYBBAGXVQEFAQEHQP5yru15alkUhPmjg47t3S0VGhW6QKM6RboaIsIvIFBA
-AwEIB4hhBBgWCAAJBYJppVPqApsMAAoJEGDHH0aYM59K+A8BAMsUKBmY7LAsnH+y
-zO0B+EjfnejGDUhA93+6SDaFLq7wAQDR087OKSc13pAgAjvHVZvrXlzZcyEyn+gR
-699wjS0bDw==
-=d3Rp
------END PGP PUBLIC KEY BLOCK-----</div>
-        <button class="pgp-copy" id="pgp-copy-btn" title="Copy PGP key">
-          <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M8 4H6a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MY STACK -->
-  <div class="section-header" data-i18n="sh-enjoy">MAGICAL SOFTWARE</div>
-  <div class="sw-grid">
-
-    <div class="sw-items">
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Audacious</span>
-          <div class="sw-links"><a href="https://audacious-media-player.org" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/audacious-media-player/audacious" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://www.reddit.com/r/linuxaudio/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-audacious">Open source · lightweight · no network calls · no telemetry</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Bitwarden</span>
-          <div class="sw-links"><a href="https://bitwarden.com" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/bitwarden" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/bitwarden" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://www.reddit.com/r/Bitwarden/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-bitwarden">Open source · AES-256 E2E encrypted · zero-knowledge · self-hostable · independently audited</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">BorgBackup</span>
-          <div class="sw-links"><a href="https://www.borgbackup.org" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/borgbackup/borg" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://discourse.borgbackup.org" target="_blank" rel="noopener" class="sw-link" title="Forum"><img src="https://cdn.simpleicons.org/discourse/00ff41" alt="Forum" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-borgbackup">Open source · AES-256 client-side encrypted · deduplicated · compressed · incremental backups</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Brave</span>
-          <div class="sw-links"><a href="https://brave.com" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/brave/brave-browser" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/brave" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://www.reddit.com/r/brave_browser/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-brave">Open source · blocks ads &amp; trackers by default · fingerprint randomisation · built-in Tor window</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Debian</span>
-          <div class="sw-links"><a href="https://www.debian.org" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/debian" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://mastodon.social/@debian" target="_blank" rel="noopener" class="sw-link" title="Mastodon"><img src="https://cdn.simpleicons.org/mastodon/00ff41" alt="Mastodon" loading="lazy"></a><a href="https://fosstodon.org/@debian" target="_blank" rel="noopener" class="sw-link" title="Fosstodon"><img src="https://cdn.simpleicons.org/mastodon/00ff41" alt="Mastodon" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-debian">Open source · no telemetry · no proprietary blobs by default · community audited · stable release cycle</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Ente</span>
-          <div class="sw-links"><a href="https://ente.io" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/ente-io/ente" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/ente_io" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://www.reddit.com/r/ente/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-ente">Open source · E2E encrypted photos &amp; auth · zero-knowledge · self-hostable · independently audited</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Fossify</span>
-          <div class="sw-links"><a href="https://www.fossify.org" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/FossifyOrg" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://www.reddit.com/r/fossilapps/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a><a href="https://search.f-droid.org/?q=fossify" target="_blank" rel="noopener" class="sw-link" title="F-Droid"><img src="https://cdn.simpleicons.org/fdroid/00ff41" alt="F-Droid" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-fossify">Open source · no tracking · no ads · no internet permissions · offline-first Android suite</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">LibreTube</span>
-          <div class="sw-links"><a href="https://libretube.dev" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/libre-tube/LibreTube" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://www.reddit.com/r/libretube/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a><a href="https://f-droid.org/packages/com.github.libretube/" target="_blank" rel="noopener" class="sw-link" title="F-Droid"><img src="https://cdn.simpleicons.org/fdroid/00ff41" alt="F-Droid" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-libretube">Open source · routes via Piped proxy · no Google account · no tracking · SponsorBlock built-in</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Mullvad</span>
-          <div class="sw-links"><a href="https://mullvad.net" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/mullvad/mullvadvpn-app" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/mullvadnet" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://www.reddit.com/r/mullvadvpn/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-mullvad">Open source · strict no-logs · anonymous account · RAM-only servers · accepts Monero &amp; cash · audited</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Nextcloud</span>
-          <div class="sw-links"><a href="https://nextcloud.com" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/nextcloud" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/Nextclouders" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://mastodon.social/@nextcloud" target="_blank" rel="noopener" class="sw-link" title="Mastodon"><img src="https://cdn.simpleicons.org/mastodon/00ff41" alt="Mastodon" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-nextcloud">Open source · fully self-hosted · E2E encryption option · no third-party access · GDPR compliant</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Notesnook</span>
-          <div class="sw-links"><a href="https://notesnook.com" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/streetwriters/notesnook" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/notesnook" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://f-droid.org/en/packages/com.streetwriters.notesnook/" target="_blank" rel="noopener" class="sw-link" title="F-Droid"><img src="https://cdn.simpleicons.org/fdroid/00ff41" alt="F-Droid" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-notesnook">Open source · XChaCha20-Poly1305 E2E encrypted · zero-knowledge · self-hostable · independently audited</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Proton Suite</span>
-          <div class="sw-links"><a href="https://proton.me" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/ProtonMail" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/ProtonPrivacy" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://www.reddit.com/r/ProtonMail/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-proton">Open source · E2E encrypted mail, VPN, drive &amp; calendar · zero-knowledge · Swiss jurisdiction · audited</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Signal</span>
-          <div class="sw-links"><a href="https://signal.org" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/signalapp" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/signalapp" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://www.reddit.com/r/signal/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-signal">Open source · Signal Protocol E2E encryption · sealed sender · minimal metadata · disappearing messages</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Thunderbird</span>
-          <div class="sw-links"><a href="https://www.thunderbird.net" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/thunderbird" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/mozthunderbird" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://fosstodon.org/@thunderbird" target="_blank" rel="noopener" class="sw-link" title="Mastodon"><img src="https://cdn.simpleicons.org/mastodon/00ff41" alt="Mastodon" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-thunderbird">Open source · OpenPGP &amp; S/MIME built-in · no telemetry · no forced accounts</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Timeshift</span>
-          <div class="sw-links"><a href="https://github.com/linuxmint/timeshift" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://www.reddit.com/r/linuxmint/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a><a href="https://launchpad.net/timeshift" target="_blank" rel="noopener" class="sw-link" title="Launchpad"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-timeshift">Open source · system snapshots · rsync or BTRFS · scheduled backups · instant rollback</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">VLC</span>
-          <div class="sw-links"><a href="https://www.videolan.org/vlc/" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/videolan/vlc" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/videolan" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://www.reddit.com/r/VLC/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-vlc">Open source · plays any format · no telemetry · no analytics · local playback only</span>
-      </div>
-      <div class="sw-item">
-        <div class="sw-header">
-          <span class="sw-name">Windscribe</span>
-          <div class="sw-links"><a href="https://windscribe.com" target="_blank" rel="noopener" class="sw-link" title="Website"><svg viewBox="0 0 24 24" width="13" height="13" fill="#00ff41"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 1.5c1.1 0 2.4 1 3.3 3H8.7c.9-2 2.2-3 3.3-3zm-4.5 3h9a14 14 0 0 1 .6 3H6.9a14 14 0 0 1 .6-3zM3.8 9.5h2.6a16 16 0 0 0-.4 3H3.1a8.5 8.5 0 0 1 .7-3zm13.8 0h2.6a8.5 8.5 0 0 1 .7 3h-2.9a16 16 0 0 0-.4-3zM3.1 14h2.9a16 16 0 0 0 .4 3H3.8a8.5 8.5 0 0 1-.7-3zm4.4 0h9a14 14 0 0 1-.6 3H8.1a14 14 0 0 1-.6-3zm10.1 0h2.9a8.5 8.5 0 0 1-.7 3h-2.6a16 16 0 0 0-.4-3zM8.7 18.5h6.6c-.9 2-2.2 3-3.3 3s-2.4-1-3.3-3zm-3.5-.5H8a11.5 11.5 0 0 0 1.1 2.4A8.5 8.5 0 0 1 5.2 18zm10.8 0h2.8a8.5 8.5 0 0 1-3.9 2.4A11.5 11.5 0 0 0 16 18z"/></svg></a><a href="https://github.com/Windscribe" target="_blank" rel="noopener" class="sw-link" title="GitHub"><img src="https://cdn.simpleicons.org/github/00ff41" alt="GitHub" loading="lazy"></a><a href="https://twitter.com/windscribeVPN" target="_blank" rel="noopener" class="sw-link" title="Twitter/X"><img src="https://cdn.simpleicons.org/x/00ff41" alt="Twitter/X" loading="lazy"></a><a href="https://www.reddit.com/r/Windscribe/" target="_blank" rel="noopener" class="sw-link" title="Reddit"><img src="https://cdn.simpleicons.org/reddit/00ff41" alt="Reddit" loading="lazy"></a></div>
-        </div>
-        <span class="sw-desc" data-i18n="sd-windscribe">Open source · no logs · built-in firewall &amp; ad blocker · static IPs · generous free tier</span>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- HACKER MANIFESTO -->
-  <div class="section-header" data-i18n="sh-manifesto">THE HACKER MANIFESTO</div>
-  <div class="manifesto">
-    <p data-i18n="m1">Another one got caught today, it's all over the papers. <span class="amber">"Teenager Arrested in Computer Crime Scandal"</span>, <span class="amber">"Hacker Arrested after Bank Tampering"</span>...</p>
-    <p data-i18n="m2">Damn kids. They're all alike.</p>
-    <p data-i18n="m3">But did you, in your three-piece psychology and 1950s techno-brain, ever take a look behind the eyes of the hacker? Did you ever wonder what made him tick, what forces shaped him, what may have molded him?</p>
-    <p data-i18n="m4">I am a hacker, enter my world...</p>
-    <p data-i18n="m5">Mine is a world that begins with school... I'm smarter than most of the other kids, this crap they teach us bores me...</p>
-    <p data-i18n="m6">Damn underachiever. They're all alike.</p>
-    <p data-i18n="m7">I'm in junior high or high school. I've listened to teachers explain for the fifteenth time how to reduce a fraction. I understand it. <span class="highlight">"No, Ms. Smith, I didn't show my work. I did it in my head..."</span></p>
-    <p data-i18n="m8">I made a discovery today. I found a computer. It does what I want it to. If it makes a mistake, it's because <span class="highlight">I</span> screwed it up. Not because it doesn't like me...</p>
-    <p data-i18n="m9">And then it happened... a door opened to a world... rushing through the phone line like heroin through an addict's veins, an electronic pulse is sent out... <span class="highlight">a board is found.</span></p>
-    <p data-i18n="m10"><span class="amber">"This is it... this is where I belong..."</span></p>
-    <p data-i18n="m11">You bet your ass we're all alike... we've been spoon-fed baby food at school when we hungered for steak.</p>
-    <p data-i18n="m12">This is our world now... the world of the electron and the switch, the beauty of the baud. We make use of a service already existing without paying for what could be dirt-cheap if it wasn't run by profiteering gluttons, and you call us criminals.</p>
-    <p data-i18n="m13">We explore... and you call us criminals. We seek after knowledge... and you call us criminals. <span class="highlight">We exist without skin color, without nationality, without religious bias...</span> and you call us criminals.</p>
-    <p data-i18n="m14">Yes, I am a criminal. My crime is that of curiosity. <span class="highlight">My crime is that of judging people by what they say and think, not what they look like.</span></p>
-    <p data-i18n="m15"><span class="red">I am a hacker, and this is my manifesto.</span> You may stop this individual, but you can't stop us all... <span class="highlight">after all, we're all alike.</span></p>
-    <p data-i18n="m16" style="color:#004a10;font-size:.78rem;">— +++The Mentor+++, January 8, 1986</p>
-  </div>
-
-</div>
-
-<footer class="site-footer" data-i18n="footer">POWERED BY COPIOUS AMOUNTS OF TEA 🏴‍☠️</footer>
-
 <script>
-// NO CURSOR
-document.documentElement.style.cursor='none';
-document.addEventListener('mouseover',e=>{
-  const el=e.target;
-  if(!el?.style)return;
-  const tag=el.tagName;
-  if(tag==='BUTTON'||tag==='A'||tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA'||el.style.cursor==='pointer')return;
-  el.style.cursor='none';
-});
+  // Dynamic Ray ID
+  const ray = Array.from({length:16}, () => '0123456789abcdef'[Math.floor(Math.random()*16)]).join('');
+  document.getElementById('cf-ray-id').textContent = ray;
 
-// CLOCK
-function updateClock(){
-  const n=new Date();
-  document.getElementById('clock').textContent=n.toUTCString().split(' ')[4];
-  document.getElementById('date-display').textContent=`${String(n.getUTCDate()).padStart(2,'0')}/${String(n.getUTCMonth()+1).padStart(2,'0')}/${n.getUTCFullYear()}`;
-}
-updateClock();setInterval(updateClock,1000);
+  // Dynamic UTC timestamp
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('cf-timestamp').textContent =
+    now.getUTCFullYear() + '-' + pad(now.getUTCMonth()+1) + '-' + pad(now.getUTCDate()) + ' ' +
+    pad(now.getUTCHours()) + ':' + pad(now.getUTCMinutes()) + ':' + pad(now.getUTCSeconds()) + ' UTC';
 
-// IP
-fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>{document.getElementById('ip-display').textContent=d.ip;}).catch(()=>{document.getElementById('ip-display').textContent='unavailable';});
-
-// PGP COPY
-document.getElementById('pgp-copy-btn').addEventListener('click',function(){
-  const text=document.getElementById('pgp-text').innerText;
-  const btn=this;
-  const confirm=()=>{btn.classList.add('copied');setTimeout(()=>btn.classList.remove('copied'),2000);};
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(confirm).catch(()=>{
-      const ta=document.createElement('textarea');ta.value=text;
-      ta.style.cssText='position:fixed;opacity:0;top:0;left:0;';
-      document.body.appendChild(ta);ta.focus();ta.select();
-      try{document.execCommand('copy');confirm();}catch(e){}
-      document.body.removeChild(ta);
-    });
-  } else {
-    const ta=document.createElement('textarea');ta.value=text;
-    ta.style.cssText='position:fixed;opacity:0;top:0;left:0;';
-    document.body.appendChild(ta);ta.focus();ta.select();
-    try{document.execCommand('copy');confirm();}catch(e){}
-    document.body.removeChild(ta);
-  }
-});
-
-
-// ── TRANSLATIONS ──
-const T={
-  en:{
-    'intro-hi':'HI THERE',
-    'intro-p1':"I'm Dexter. I currently work as an operations manager in the cryptocurrency space. I'm a strong advocate for open-source software and a firm believer in digital privacy. Are you building something cool? Feel free to reach out.",
-    'sh-socials':'MY SOCIALS','sh-enjoy':'MAGICAL SOFTWARE','sh-manifesto':'THE HACKER MANIFESTO',
-    'lbl-signal':'SIGNAL','lbl-twitter':'TWITTER','lbl-telegram':'TELEGRAM','lbl-pgp':'PGP KEY',
-    'footer':'POWERED BY COPIOUS AMOUNTS OF TEA \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'Another one got caught today, it\'s all over the papers. <span class="amber">"Teenager Arrested in Computer Crime Scandal"</span>, <span class="amber">"Hacker Arrested after Bank Tampering"</span>...',
-    'm2':'Damn kids. They\'re all alike.',
-    'm3':'But did you, in your three-piece psychology and 1950s techno-brain, ever take a look behind the eyes of the hacker? Did you ever wonder what made him tick, what forces shaped him, what may have molded him?',
-    'm4':'I am a hacker, enter my world...',
-    'm5':"Mine is a world that begins with school... I'm smarter than most of the other kids, this crap they teach us bores me...",
-    'm6':'Damn underachiever. They\'re all alike.',
-    'm7':'I\'m in junior high or high school. I\'ve listened to teachers explain for the fifteenth time how to reduce a fraction. I understand it. <span class="highlight">"No, Ms. Smith, I didn\'t show my work. I did it in my head..."</span>',
-    'm8':'I made a discovery today. I found a computer. It does what I want it to. If it makes a mistake, it\'s because <span class="highlight">I</span> screwed it up. Not because it doesn\'t like me...',
-    'm9':'And then it happened... a door opened to a world... rushing through the phone line like heroin through an addict\'s veins, an electronic pulse is sent out... <span class="highlight">a board is found.</span>',
-    'm10':'<span class="amber">"This is it... this is where I belong..."</span>',
-    'm11':"You bet your ass we're all alike... we've been spoon-fed baby food at school when we hungered for steak.",
-    'm12':"This is our world now... the world of the electron and the switch, the beauty of the baud. We make use of a service already existing without paying for what could be dirt-cheap if it wasn't run by profiteering gluttons, and you call us criminals.",
-    'm13':'We explore... and you call us criminals. We seek after knowledge... and you call us criminals. <span class="highlight">We exist without skin color, without nationality, without religious bias...</span> and you call us criminals.',
-    'm14':'Yes, I am a criminal. My crime is that of curiosity. <span class="highlight">My crime is that of judging people by what they say and think, not what they look like.</span>',
-    'm15':'<span class="red">I am a hacker, and this is my manifesto.</span> You may stop this individual, but you can\'t stop us all... <span class="highlight">after all, we\'re all alike.</span>',
-    'm16':'— +++The Mentor+++, January 8, 1986',
-    'sd-audacious':'Open source &middot; lightweight &middot; no network calls &middot; no telemetry',
-    'sd-bitwarden':'Open source &middot; AES-256 E2E encrypted &middot; zero-knowledge &middot; self-hostable &middot; independently audited',
-    'sd-borgbackup':'Open source &middot; AES-256 client-side encrypted &middot; deduplicated &middot; compressed &middot; incremental backups',
-    'sd-brave':'Open source &middot; blocks ads &amp; trackers by default &middot; fingerprint randomisation &middot; built-in Tor window',
-    'sd-debian':'Open source &middot; no telemetry &middot; no proprietary blobs by default &middot; community audited &middot; stable release cycle',
-    'sd-ente':'Open source &middot; E2E encrypted photos &amp; auth &middot; zero-knowledge &middot; self-hostable &middot; independently audited',
-    'sd-fossify':'Open source &middot; no tracking &middot; no ads &middot; no internet permissions &middot; offline-first Android suite',
-    'sd-libretube':'Open source &middot; routes via Piped proxy &middot; no Google account &middot; no tracking &middot; SponsorBlock built-in',
-    'sd-mullvad':'Open source &middot; strict no-logs &middot; anonymous account &middot; RAM-only servers &middot; accepts Monero &amp; cash &middot; audited',
-    'sd-nextcloud':'Open source &middot; fully self-hosted &middot; E2E encryption option &middot; no third-party access &middot; GDPR compliant',
-    'sd-notesnook':'Open source &middot; XChaCha20-Poly1305 E2E encrypted &middot; zero-knowledge &middot; self-hostable &middot; independently audited',
-    'sd-proton':'Open source &middot; E2E encrypted mail, VPN, drive &amp; calendar &middot; zero-knowledge &middot; Swiss jurisdiction &middot; audited',
-    'sd-signal':'Open source &middot; Signal Protocol E2E encryption &middot; sealed sender &middot; minimal metadata &middot; disappearing messages',
-    'sd-thunderbird':'Open source &middot; OpenPGP &amp; S/MIME built-in &middot; no telemetry &middot; no forced accounts',
-    'sd-timeshift':'Open source &middot; system snapshots &middot; rsync or BTRFS &middot; scheduled backups &middot; instant rollback',
-    'sd-vlc':'Open source &middot; plays any format &middot; no telemetry &middot; no analytics &middot; local playback only',
-    'sd-windscribe':'Open source &middot; no logs &middot; built-in firewall &amp; ad blocker &middot; static IPs &middot; generous free tier',
-  },
-  de:{
-    'intro-hi':'HALLO',
-    'intro-p1':"Ich bin Dexter. Ich arbeite derzeit als Operations Manager im Kryptowährungsbereich. Überzeugter Befürworter von Open-Source-Software und fester Glaube an digitale Privatsphäre. Baust du gerade etwas Cooles? Melde dich gerne.",
-    'sh-socials':'MEINE KONTAKTE','sh-enjoy':'MAGISCHE SOFTWARE','sh-manifesto':'DAS HACKER-MANIFEST',
-    'lbl-signal':'SIGNAL','lbl-twitter':'TWITTER','lbl-telegram':'TELEGRAM','lbl-pgp':'PGP-SCHLÜSSEL',
-    'footer':'BETRIEBEN MIT SEHR VIEL TEE \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'Wieder einer erwischt heute, es steht in allen Zeitungen. <span class="amber">"Teenager wegen Computerkriminalität verhaftet"</span>, <span class="amber">"Hacker nach Bankmanipulation festgenommen"</span>...',
-    'm2':'Verdammte Kinder. Sie sind alle gleich.',
-    'm3':'Aber hast du, mit deiner dreiteiligen Psychologie und deinem 1950er-Technikgehirn, je einen Blick hinter die Augen des Hackers geworfen? Hast du dich je gefragt, was ihn antreibt?',
-    'm4':'Ich bin ein Hacker, tritt in meine Welt ein...',
-    'm5':'Meine Welt beginnt in der Schule... Ich bin klüger als die meisten anderen Kinder, dieser Mist, den sie uns beibringen, langweilt mich...',
-    'm6':'Verdammter Underachiever. Sie sind alle gleich.',
-    'm7':'Ich bin in der Mittelschule. Ich habe Lehrern zugehört, die zum fünfzehnten Mal erklärten, wie man einen Bruch kürzt. Ich verstehe es. <span class="highlight">"Nein, Frau Müller, ich habe meinen Rechenweg nicht gezeigt. Ich habe es im Kopf gemacht..."</span>',
-    'm8':'Ich habe heute eine Entdeckung gemacht. Ich fand einen Computer. Er tut, was ich will. Wenn er einen Fehler macht, dann weil <span class="highlight">ich</span> ihn verursacht habe. Nicht weil er mich nicht mag...',
-    'm9':'Und dann geschah es... eine Tür öffnete sich zu einer Welt... durch die Telefonleitung wie Heroin durch die Adern eines Süchtigen, wird ein elektronischer Impuls ausgesendet... <span class="highlight">ein Board wird gefunden.</span>',
-    'm10':'<span class="amber">"Das ist es... hier gehöre ich hin..."</span>',
-    'm11':'Wir sind alle gleich, darauf kannst du wetten... wir wurden in der Schule mit Babynahrung abgespeist, obwohl wir nach Steak hungerten.',
-    'm12':'Das ist jetzt unsere Welt... die Welt des Elektrons und des Schalters, die Schönheit des Baud. Wir nutzen einen bestehenden Dienst, ohne für etwas zu zahlen, das billig sein könnte, wenn es nicht von Profitgeiern betrieben würde, und ihr nennt uns Kriminelle.',
-    'm13':'Wir erforschen... und ihr nennt uns Kriminelle. Wir suchen nach Wissen... und ihr nennt uns Kriminelle. <span class="highlight">Wir existieren ohne Hautfarbe, ohne Nationalität, ohne religiöse Vorurteile...</span> und ihr nennt uns Kriminelle.',
-    'm14':'Ja, ich bin ein Krimineller. Mein Verbrechen ist die Neugier. <span class="highlight">Mein Verbrechen ist, Menschen nach dem zu beurteilen, was sie sagen und denken, nicht nach ihrem Aussehen.</span>',
-    'm15':'<span class="red">Ich bin ein Hacker, und das ist mein Manifest.</span> Ihr könnt dieses Individuum aufhalten, aber nicht uns alle... <span class="highlight">schließlich sind wir alle gleich.</span>',
-    'm16':'— +++The Mentor+++, 8. Januar 1986',
-    'sd-audacious':'Open Source &middot; leichtgewichtig &middot; keine Netzwerkaufrufe &middot; keine Telemetrie',
-    'sd-bitwarden':'Open Source &middot; AES-256 E2E-verschluesselt &middot; Zero-Knowledge &middot; selbst-hostbar &middot; unabhaengig geprueft',
-    'sd-borgbackup':'Open Source &middot; AES-256 clientseitig verschluesselt &middot; dedupliziert &middot; komprimiert &middot; inkrementelle Backups',
-    'sd-brave':'Open Source &middot; blockiert Werbung &amp; Tracker &middot; Fingerprint-Zufallsverfahren &middot; eingebautes Tor-Fenster',
-    'sd-debian':'Open Source &middot; keine Telemetrie &middot; keine proprietaeren Blobs &middot; community-geprueft &middot; stabiler Release-Zyklus',
-    'sd-ente':'Open Source &middot; E2E-verschluesselte Fotos &amp; Auth &middot; Zero-Knowledge &middot; selbst-hostbar &middot; unabhaengig geprueft',
-    'sd-fossify':'Open Source &middot; kein Tracking &middot; keine Werbung &middot; keine Internet-Berechtigungen &middot; Offline-zuerst Android-Suite',
-    'sd-libretube':'Open Source &middot; leitet ueber Piped-Proxy &middot; kein Google-Konto &middot; kein Tracking &middot; SponsorBlock eingebaut',
-    'sd-mullvad':'Open Source &middot; striktes No-Log &middot; anonymes Konto &middot; RAM-only Server &middot; akzeptiert Monero &amp; Bargeld &middot; geprueft',
-    'sd-nextcloud':'Open Source &middot; vollstaendig selbst-gehostet &middot; E2E-Verschluesselung moeglich &middot; kein Drittanbieter-Zugriff &middot; DSGVO-konform',
-    'sd-notesnook':'Open Source &middot; XChaCha20-Poly1305 E2E-verschluesselt &middot; Zero-Knowledge &middot; selbst-hostbar &middot; unabhaengig geprueft',
-    'sd-proton':'Open Source &middot; E2E-verschluesselt: Mail, VPN, Drive &amp; Kalender &middot; Zero-Knowledge &middot; Schweizer Rechtsprechung &middot; geprueft',
-    'sd-signal':'Open Source &middot; Signal-Protokoll E2E-Verschluesselung &middot; Sealed Sender &middot; minimale Metadaten &middot; verschwindende Nachrichten',
-    'sd-thunderbird':'Open Source &middot; OpenPGP &amp; S/MIME eingebaut &middot; keine Telemetrie &middot; kein Kontopflicht',
-    'sd-timeshift':'Open Source &middot; Systemschnappschuesse &middot; rsync oder BTRFS &middot; geplante Backups &middot; sofortiges Rollback',
-    'sd-vlc':'Open Source &middot; spielt jedes Format &middot; keine Telemetrie &middot; keine Analytik &middot; nur lokale Wiedergabe',
-    'sd-windscribe':'Open Source &middot; keine Logs &middot; eingebaute Firewall &amp; Werbeblocker &middot; statische IPs &middot; grosszuegiger Gratis-Tarif',
-  },
-  fr:{
-    'intro-hi':'BONJOUR',
-    'intro-p1':"Je suis Dexter. Je travaille actuellement comme responsable des opérations dans le secteur des cryptomonnaies. Fervent défenseur des logiciels open source et convaincu de l'importance de la vie privée numérique. Tu construis quelque chose de cool ? N'hésite pas à me contacter.",
-    'sh-socials':'MES RÉSEAUX','sh-enjoy':'LOGICIELS MAGIQUES','sh-manifesto':'LE MANIFESTE HACKER',
-    'lbl-signal':'SIGNAL','lbl-twitter':'TWITTER','lbl-telegram':'TELEGRAM','lbl-pgp':'CLÉ PGP',
-    'footer':'ALIMENTÉ PAR D\'INNOMBRABLES TASSES DE THÉ \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'Un autre s\'est fait prendre aujourd\'hui, c\'est dans tous les journaux. <span class="amber">"Adolescent arrêté dans un scandale informatique"</span>, <span class="amber">"Hacker arrêté après manipulation bancaire"</span>...',
-    'm2':'Ces gamins. Ils sont tous pareils.',
-    'm3':'Mais toi, avec ta psychologie en trois pièces et ton cerveau techno des années 50, as-tu jamais regardé derrière les yeux du hacker ? As-tu jamais cherché à comprendre ce qui le faisait vibrer ?',
-    'm4':'Je suis un hacker, entre dans mon monde...',
-    'm5':"Mon monde commence à l'école... Je suis plus intelligent que la plupart des autres enfants, ce qu'on nous enseigne m'ennuie...",
-    'm6':'Mauvais élève. Ils sont tous pareils.',
-    'm7':'Je suis au collège. J\'ai écouté des profs expliquer pour la quinzième fois comment réduire une fraction. Je comprends. <span class="highlight">"Non, madame, je n\'ai pas montré mon travail. Je l\'ai fait dans ma tête..."</span>',
-    'm8':'J\'ai fait une découverte aujourd\'hui. J\'ai trouvé un ordinateur. Il fait ce que je veux. S\'il fait une erreur, c\'est parce que <span class="highlight">moi</span> j\'ai merdé. Pas parce qu\'il ne m\'aime pas...',
-    'm9':'Et alors ça s\'est produit... une porte s\'est ouverte sur un monde... se précipitant par la ligne téléphonique comme l\'héroïne dans les veines d\'un drogué, une impulsion électronique est envoyée... <span class="highlight">un serveur est trouvé.</span>',
-    'm10':'<span class="amber">"C\'est ça... c\'est là que je suis chez moi..."</span>',
-    'm11':"Tu paries qu'on est tous pareils... on nous a nourri à la bouillie à l'école quand on avait faim de steak.",
-    'm12':"C'est notre monde maintenant... le monde de l'électron et du commutateur. Nous utilisons un service existant sans payer pour ce qui pourrait être bon marché s'il n'était pas géré par des profiteurs, et vous nous appelez criminels.",
-    'm13':'Nous explorons... et vous nous appelez criminels. Nous cherchons la connaissance... et vous nous appelez criminels. <span class="highlight">Nous existons sans couleur de peau, sans nationalité, sans biais religieux...</span> et vous nous appelez criminels.',
-    'm14':'Oui, je suis un criminel. Mon crime est la curiosité. <span class="highlight">Mon crime est de juger les gens selon ce qu\'ils disent et pensent, pas leur apparence.</span>',
-    'm15':'<span class="red">Je suis un hacker, et voici mon manifeste.</span> Vous pouvez arrêter cet individu, mais pas nous tous... <span class="highlight">après tout, nous sommes tous pareils.</span>',
-    'm16':'— +++The Mentor+++, 8 janvier 1986',
-    'sd-audacious':'Open source &middot; leger &middot; aucun appel reseau &middot; aucune telemetrie',
-    'sd-bitwarden':'Open source &middot; chiffre E2E AES-256 &middot; zero connaissance &middot; auto-hebergeable &middot; audite independamment',
-    'sd-borgbackup':'Open source &middot; chiffre cote client AES-256 &middot; deduplique &middot; compresse &middot; sauvegardes incrementielles',
-    'sd-brave':'Open source &middot; bloque pubs &amp; traceurs par defaut &middot; randomisation empreinte &middot; fenetre Tor integree',
-    'sd-debian':'Open source &middot; aucune telemetrie &middot; aucun blob proprietaire &middot; audite par la communaute &middot; cycle de publication stable',
-    'sd-ente':'Open source &middot; photos &amp; auth chiffrees E2E &middot; zero connaissance &middot; auto-hebergeable &middot; audite independamment',
-    'sd-fossify':'Open source &middot; aucun suivi &middot; aucune pub &middot; aucune permission internet &middot; suite Android hors-ligne en priorite',
-    'sd-libretube':'Open source &middot; passe par proxy Piped &middot; sans compte Google &middot; aucun suivi &middot; SponsorBlock integre',
-    'sd-mullvad':'Open source &middot; zero log strict &middot; compte anonyme &middot; serveurs RAM uniquement &middot; accepte Monero &amp; especes &middot; audite',
-    'sd-nextcloud':'Open source &middot; entierement auto-heberge &middot; option de chiffrement E2E &middot; aucun acces tiers &middot; conforme RGPD',
-    'sd-notesnook':'Open source &middot; chiffre E2E XChaCha20-Poly1305 &middot; zero connaissance &middot; auto-hebergeable &middot; audite independamment',
-    'sd-proton':'Open source &middot; mail, VPN, drive &amp; agenda chiffres E2E &middot; zero connaissance &middot; juridiction suisse &middot; audite',
-    'sd-signal':'Open source &middot; chiffrement E2E protocole Signal &middot; expediteur scelle &middot; metadonnees minimales &middot; messages ephemeres',
-    'sd-thunderbird':'Open source &middot; OpenPGP &amp; S/MIME integres &middot; aucune telemetrie &middot; aucun compte obligatoire',
-    'sd-timeshift':'Open source &middot; instantanes systeme &middot; rsync ou BTRFS &middot; sauvegardes planifiees &middot; rollback instantane',
-    'sd-vlc':'Open source &middot; lit tous les formats &middot; aucune telemetrie &middot; aucune analytique &middot; lecture locale uniquement',
-    'sd-windscribe':'Open source &middot; aucun log &middot; pare-feu &amp; bloqueur de pub integres &middot; IPs statiques &middot; offre gratuite genereuse',
-  },
-  es:{
-    'intro-hi':'HOLA',
-    'intro-p1':"Soy Dexter. Actualmente trabajo como gerente de operaciones en el sector de las criptomonedas. Defensor convencido del software de código abierto y firme creyente en la privacidad digital. ¿Estás construyendo algo genial? No dudes en escribirme.",
-    'sh-socials':'MIS REDES','sh-enjoy':'SOFTWARE MÁGICO','sh-manifesto':'EL MANIFIESTO HACKER',
-    'lbl-signal':'SIGNAL','lbl-twitter':'TWITTER','lbl-telegram':'TELEGRAM','lbl-pgp':'CLAVE PGP',
-    'footer':'IMPULSADO POR CANTIDADES ENORMES DE TÉ \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'Otro fue atrapado hoy, está en todos los periódicos. <span class="amber">"Adolescente arrestado en escándalo informático"</span>, <span class="amber">"Hacker detenido tras manipulación bancaria"</span>...',
-    'm2':'Malditos chicos. Son todos iguales.',
-    'm3':'Pero tú, con tu psicología de traje y tu cerebro tecnológico de los 50, ¿alguna vez miraste detrás de los ojos del hacker? ¿Te preguntaste qué lo motivaba?',
-    'm4':'Soy un hacker, entra en mi mundo...',
-    'm5':'Mi mundo comienza en la escuela... Soy más listo que la mayoría, esta basura que nos enseñan me aburre...',
-    'm6':'Mal estudiante. Son todos iguales.',
-    'm7':'Estoy en el instituto. He escuchado a profesores explicar por decimoquinta vez cómo reducir una fracción. Lo entiendo. <span class="highlight">"No, señorita, no mostré mi trabajo. Lo hice mentalmente..."</span>',
-    'm8':'Hice un descubrimiento hoy. Encontré un ordenador. Hace lo que quiero. Si comete un error, es porque <span class="highlight">yo</span> lo causé. No porque no le guste yo...',
-    'm9':'Y entonces ocurrió... una puerta se abrió a un mundo... corriendo por la línea telefónica como heroína por las venas de un adicto, se envía un pulso electrónico... <span class="highlight">se encuentra una placa.</span>',
-    'm10':'<span class="amber">"Esto es... aquí es donde pertenezco..."</span>',
-    'm11':'Apuesta a que somos todos iguales... nos han dado papilla en la escuela cuando teníamos hambre de carne.',
-    'm12':'Este es nuestro mundo ahora... el mundo del electrón y el interruptor. Usamos un servicio existente sin pagar por lo que podría ser barato si no lo gestionaran avariciosos, y nos llaman criminales.',
-    'm13':'Exploramos... y nos llaman criminales. Buscamos conocimiento... y nos llaman criminales. <span class="highlight">Existimos sin color de piel, sin nacionalidad, sin prejuicios religiosos...</span> y nos llaman criminales.',
-    'm14':'Sí, soy un criminal. Mi crimen es la curiosidad. <span class="highlight">Mi crimen es juzgar a las personas por lo que dicen y piensan, no por su aspecto.</span>',
-    'm15':'<span class="red">Soy un hacker, y este es mi manifiesto.</span> Puedes detener a este individuo, pero no a todos... <span class="highlight">al fin y al cabo, somos todos iguales.</span>',
-    'm16':'— +++The Mentor+++, 8 de enero de 1986',
-    'sd-audacious':'Codigo abierto &middot; ligero &middot; sin llamadas de red &middot; sin telemetria',
-    'sd-bitwarden':'Codigo abierto &middot; cifrado E2E AES-256 &middot; conocimiento cero &middot; auto-alojable &middot; auditado independientemente',
-    'sd-borgbackup':'Codigo abierto &middot; cifrado AES-256 en el cliente &middot; deduplicado &middot; comprimido &middot; copias de seguridad incrementales',
-    'sd-brave':'Codigo abierto &middot; bloquea anuncios &amp; rastreadores &middot; randomizacion de huella digital &middot; ventana Tor integrada',
-    'sd-debian':'Codigo abierto &middot; sin telemetria &middot; sin blobs propietarios &middot; auditado por la comunidad &middot; ciclo de lanzamiento estable',
-    'sd-ente':'Codigo abierto &middot; fotos &amp; auth cifradas E2E &middot; conocimiento cero &middot; auto-alojable &middot; auditado independientemente',
-    'sd-fossify':'Codigo abierto &middot; sin rastreo &middot; sin anuncios &middot; sin permisos de internet &middot; suite Android sin conexion prioritaria',
-    'sd-libretube':'Codigo abierto &middot; enruta por proxy Piped &middot; sin cuenta Google &middot; sin rastreo &middot; SponsorBlock integrado',
-    'sd-mullvad':'Codigo abierto &middot; sin registros estricto &middot; cuenta anonima &middot; servidores solo RAM &middot; acepta Monero &amp; efectivo &middot; auditado',
-    'sd-nextcloud':'Codigo abierto &middot; totalmente auto-alojado &middot; opcion de cifrado E2E &middot; sin acceso de terceros &middot; conforme RGPD',
-    'sd-notesnook':'Codigo abierto &middot; cifrado E2E XChaCha20-Poly1305 &middot; conocimiento cero &middot; auto-alojable &middot; auditado independientemente',
-    'sd-proton':'Codigo abierto &middot; correo, VPN, drive &amp; calendario cifrados E2E &middot; conocimiento cero &middot; jurisdiccion suiza &middot; auditado',
-    'sd-signal':'Codigo abierto &middot; cifrado E2E protocolo Signal &middot; remitente sellado &middot; metadatos minimos &middot; mensajes que desaparecen',
-    'sd-thunderbird':'Codigo abierto &middot; OpenPGP &amp; S/MIME integrados &middot; sin telemetria &middot; sin cuentas obligatorias',
-    'sd-timeshift':'Codigo abierto &middot; instantaneas del sistema &middot; rsync o BTRFS &middot; copias programadas &middot; rollback instantaneo',
-    'sd-vlc':'Codigo abierto &middot; reproduce cualquier formato &middot; sin telemetria &middot; sin analiticas &middot; solo reproduccion local',
-    'sd-windscribe':'Codigo abierto &middot; sin registros &middot; firewall &amp; bloqueador de anuncios integrado &middot; IPs estaticas &middot; plan gratuito generoso',
-  },
-  pt:{
-    'intro-hi':'OLÁ',
-    'intro-p1':"Sou Dexter. Trabalho atualmente como gestor de operações no espaço das criptomoedas. Defensor do software open source e firme crente na privacidade digital. Estás a construir algo fixe? Entra em contacto.",
-    'sh-socials':'MINHAS REDES','sh-enjoy':'SOFTWARE MÁGICO','sh-manifesto':'O MANIFESTO HACKER',
-    'lbl-signal':'SIGNAL','lbl-twitter':'TWITTER','lbl-telegram':'TELEGRAM','lbl-pgp':'CHAVE PGP',
-    'footer':'ALIMENTADO POR IMENSAS QUANTIDADES DE CHÁ \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'Mais um foi apanhado hoje, está em todos os jornais. <span class="amber">"Adolescente preso em escândalo informático"</span>, <span class="amber">"Hacker detido após manipulação bancária"</span>...',
-    'm2':'Malditos miúdos. São todos iguais.',
-    'm3':'Mas tu, com a tua psicologia de fato e o teu cérebro tecnológico dos anos 50, alguma vez olhaste para trás dos olhos do hacker? Alguma vez te perguntaste o que o movia?',
-    'm4':'Sou um hacker, entra no meu mundo...',
-    'm5':'O meu mundo começa na escola... Sou mais esperto do que a maioria, este lixo que nos ensinam aborrece-me...',
-    'm6':'Mau aluno. São todos iguais.',
-    'm7':'Estou no liceu. Ouvi professores explicar pela décima quinta vez como simplificar uma fração. Percebo. <span class="highlight">"Não, professora, não mostrei o meu trabalho. Fiz de cabeça..."</span>',
-    'm8':'Fiz uma descoberta hoje. Encontrei um computador. Faz o que eu quero. Se cometer um erro, é porque <span class="highlight">eu</span> o causei. Não porque não gosta de mim...',
-    'm9':'E então aconteceu... uma porta abriu-se para um mundo... a correr pela linha telefónica como heroína nas veias de um viciado, um pulso eletrónico é enviado... <span class="highlight">uma placa é encontrada.</span>',
-    'm10':'<span class="amber">"É isto... é aqui que pertenço..."</span>',
-    'm11':"Podes apostar que somos todos iguais... fomos alimentados com papa na escola quando tínhamos fome de bife.",
-    'm12':"Este é o nosso mundo agora... o mundo do eletrão e do interruptor. Usamos um serviço existente sem pagar por algo que poderia ser barato se não fosse gerido por gananciosos, e chamam-nos criminosos.",
-    'm13':'Exploramos... e chamam-nos criminosos. Procuramos conhecimento... e chamam-nos criminosos. <span class="highlight">Existimos sem cor de pele, sem nacionalidade, sem preconceitos religiosos...</span> e chamam-nos criminosos.',
-    'm14':'Sim, sou um criminoso. O meu crime é a curiosidade. <span class="highlight">O meu crime é julgar as pessoas pelo que dizem e pensam, não pela sua aparência.</span>',
-    'm15':'<span class="red">Sou um hacker, e este é o meu manifesto.</span> Podes parar este indivíduo, mas não a todos... <span class="highlight">afinal, somos todos iguais.</span>',
-    'm16':'— +++The Mentor+++, 8 de janeiro de 1986',
-    'sd-audacious':'Open source &middot; leve &middot; sem chamadas de rede &middot; sem telemetria',
-    'sd-bitwarden':'Open source &middot; cifrado E2E AES-256 &middot; zero-conhecimento &middot; auto-hospedavel &middot; auditado independentemente',
-    'sd-borgbackup':'Open source &middot; cifrado AES-256 no cliente &middot; deduplicado &middot; comprimido &middot; backups incrementais',
-    'sd-brave':'Open source &middot; bloqueia anuncios &amp; rastreadores &middot; randomizacao de impressao digital &middot; janela Tor integrada',
-    'sd-debian':'Open source &middot; sem telemetria &middot; sem blobs proprietarios &middot; auditado pela comunidade &middot; ciclo de lancamento estavel',
-    'sd-ente':'Open source &middot; fotos &amp; auth cifradas E2E &middot; zero-conhecimento &middot; auto-hospedavel &middot; auditado independentemente',
-    'sd-fossify':'Open source &middot; sem rastreamento &middot; sem anuncios &middot; sem permissoes de internet &middot; suite Android offline-first',
-    'sd-libretube':'Open source &middot; encaminha via proxy Piped &middot; sem conta Google &middot; sem rastreamento &middot; SponsorBlock integrado',
-    'sd-mullvad':'Open source &middot; zero logs estrito &middot; conta anonima &middot; servidores so RAM &middot; aceita Monero &amp; dinheiro &middot; auditado',
-    'sd-nextcloud':'Open source &middot; totalmente auto-hospedado &middot; opcao de cifrado E2E &middot; sem acesso de terceiros &middot; conforme RGPD',
-    'sd-notesnook':'Open source &middot; cifrado E2E XChaCha20-Poly1305 &middot; zero-conhecimento &middot; auto-hospedavel &middot; auditado independentemente',
-    'sd-proton':'Open source &middot; correio, VPN, drive &amp; calendario cifrados E2E &middot; zero-conhecimento &middot; jurisdicao suica &middot; auditado',
-    'sd-signal':'Open source &middot; cifrado E2E protocolo Signal &middot; remetente selado &middot; metadados minimos &middot; mensagens temporarias',
-    'sd-thunderbird':'Open source &middot; OpenPGP &amp; S/MIME integrados &middot; sem telemetria &middot; sem contas obrigatorias',
-    'sd-timeshift':'Open source &middot; instantaneos do sistema &middot; rsync ou BTRFS &middot; backups agendados &middot; rollback instantaneo',
-    'sd-vlc':'Open source &middot; reproduz qualquer formato &middot; sem telemetria &middot; sem analiticas &middot; reproducao local apenas',
-    'sd-windscribe':'Open source &middot; sem logs &middot; firewall &amp; bloqueador de anuncios integrado &middot; IPs estaticos &middot; plano gratuito generoso',
-  },
-  nl:{
-    'intro-hi':'HALLO',
-    'intro-p1':"Ik ben Dexter. Ik werk momenteel als operations manager in de cryptovaluta-sector. Overtuigd voorstander van open-source software en groot gelovige in digitale privacy. Bouw je iets cools? Neem gerust contact op.",
-    'sh-socials':'MIJN SOCIALS','sh-enjoy':'MAGISCHE SOFTWARE','sh-manifesto':'HET HACKERMANIFEST',
-    'lbl-signal':'SIGNAL','lbl-twitter':'TWITTER','lbl-telegram':'TELEGRAM','lbl-pgp':'PGP-SLEUTEL',
-    'footer':'AANGEDREVEN DOOR ENORME HOEVEELHEDEN THEE \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'Weer een gepakt vandaag, het staat in alle kranten. <span class="amber">"Tiener gearresteerd in computercriminaliteitsschandaal"</span>, <span class="amber">"Hacker opgepakt na bankmanipulatie"</span>...',
-    'm2':'Verdomde kinderen. Ze zijn allemaal hetzelfde.',
-    'm3':'Maar jij, met je driedelige psychologie en je 1950s techno-brein, heb je ooit een blik geworpen achter de ogen van de hacker? Heb je je ooit afgevraagd wat hem dreef?',
-    'm4':'Ik ben een hacker, betreedt mijn wereld...',
-    'm5':'Mijn wereld begint op school... Ik ben slimmer dan de meeste andere kinderen, die onzin die ze ons leren verveelt me...',
-    'm6':'Slechte presteerder. Ze zijn allemaal hetzelfde.',
-    'm7':'Ik zit op de middelbare school. Ik heb leraren voor de vijftiende keer horen uitleggen hoe je een breuk vereenvoudigt. Ik begrijp het. <span class="highlight">"Nee, mevrouw, ik heb mijn werk niet laten zien. Ik deed het in mijn hoofd..."</span>',
-    'm8':'Ik deed vandaag een ontdekking. Ik vond een computer. Hij doet wat ik wil. Als hij een fout maakt, is het omdat <span class="highlight">ik</span> het veroorzaakte. Niet omdat hij me niet mag...',
-    'm9':'En toen gebeurde het... een deur opende zich naar een wereld... razend door de telefoonlijn als heroïne door de aderen van een verslaafde, wordt een elektronische puls verzonden... <span class="highlight">een board wordt gevonden.</span>',
-    'm10':'<span class="amber">"Dit is het... hier hoor ik thuis..."</span>',
-    'm11':"Je kunt erop wedden dat we allemaal hetzelfde zijn... we werden op school gevoed met babyvoeding terwijl we honger hadden naar biefstuk.",
-    'm12':"Dit is onze wereld nu... de wereld van het elektron en de schakelaar. We maken gebruik van een bestaande dienst zonder te betalen voor wat goedkoop kon zijn als het niet door winstbejagers werd gerund, en jullie noemen ons criminelen.",
-    'm13':'We verkennen... en jullie noemen ons criminelen. We zoeken kennis... en jullie noemen ons criminelen. <span class="highlight">We bestaan zonder huidskleur, zonder nationaliteit, zonder religieus vooroordeel...</span> en jullie noemen ons criminelen.',
-    'm14':'Ja, ik ben een crimineel. Mijn misdaad is nieuwsgierigheid. <span class="highlight">Mijn misdaad is mensen beoordelen op wat ze zeggen en denken, niet op hoe ze eruitzien.</span>',
-    'm15':'<span class="red">Ik ben een hacker, en dit is mijn manifest.</span> Jullie kunnen dit individu stoppen, maar niet ons allemaal... <span class="highlight">tenslotte zijn we allemaal hetzelfde.</span>',
-    'm16':'— +++The Mentor+++, 8 januari 1986',
-    'sd-audacious':'Open source &middot; lichtgewicht &middot; geen netwerkaanroepen &middot; geen telemetrie',
-    'sd-bitwarden':'Open source &middot; AES-256 E2E-versleuteld &middot; zero-knowledge &middot; zelf te hosten &middot; onafhankelijk geauditeerd',
-    'sd-borgbackup':'Open source &middot; AES-256 versleuteld op client &middot; gededupliceerd &middot; gecomprimeerd &middot; incrementele back-ups',
-    'sd-brave':'Open source &middot; blokkeert advertenties &amp; trackers &middot; vingerafdruk-randomisatie &middot; ingebouwd Tor-venster',
-    'sd-debian':'Open source &middot; geen telemetrie &middot; geen proprietaire blobs &middot; community-geauditeerd &middot; stabiele releasecyclus',
-    'sd-ente':'Open source &middot; E2E-versleutelde fotos &amp; auth &middot; zero-knowledge &middot; zelf te hosten &middot; onafhankelijk geauditeerd',
-    'sd-fossify':'Open source &middot; geen tracking &middot; geen advertenties &middot; geen internetmachtigingen &middot; offline-first Android-suite',
-    'sd-libretube':'Open source &middot; via Piped-proxy &middot; geen Google-account &middot; geen tracking &middot; SponsorBlock ingebouwd',
-    'sd-mullvad':'Open source &middot; strikt geen logs &middot; anoniem account &middot; RAM-only servers &middot; accepteert Monero &amp; contant geld &middot; geauditeerd',
-    'sd-nextcloud':'Open source &middot; volledig zelf gehost &middot; E2E-versleuteling optie &middot; geen externe toegang &middot; AVG-conform',
-    'sd-notesnook':'Open source &middot; XChaCha20-Poly1305 E2E-versleuteld &middot; zero-knowledge &middot; zelf te hosten &middot; onafhankelijk geauditeerd',
-    'sd-proton':'Open source &middot; E2E-versleuteld: mail, VPN, drive &amp; agenda &middot; zero-knowledge &middot; Zwitserse jurisdictie &middot; geauditeerd',
-    'sd-signal':'Open source &middot; Signal-protocol E2E-versleuteling &middot; sealed sender &middot; minimale metadata &middot; verdwijnende berichten',
-    'sd-thunderbird':'Open source &middot; OpenPGP &amp; S/MIME ingebouwd &middot; geen telemetrie &middot; geen verplicht account',
-    'sd-timeshift':'Open source &middot; systeemmomentopnames &middot; rsync of BTRFS &middot; geplande back-ups &middot; direct terugdraaien',
-    'sd-vlc':'Open source &middot; speelt elk formaat &middot; geen telemetrie &middot; geen analyses &middot; alleen lokale weergave',
-    'sd-windscribe':'Open source &middot; geen logs &middot; ingebouwde firewall &amp; advertentie-blokkering &middot; statische IPs &middot; ruim gratis abonnement',
-  },
-  ru:{
-    'intro-hi':'ПРИВЕТ',
-    'intro-p1':"Я Декстер. В настоящее время работаю операционным менеджером в сфере криптовалют. Убеждённый сторонник open-source ПО и цифровой приватности. Строишь что-то крутое? Пишите.",
-    'sh-socials':'МОИ КОНТАКТЫ','sh-enjoy':'МАГИЧЕСКИЙ СОФТ','sh-manifesto':'МАНИФЕСТ ХАКЕРА',
-    'lbl-signal':'СИГНАЛ','lbl-twitter':'ТВИТТЕР','lbl-telegram':'ТЕЛЕГРАМ','lbl-pgp':'PGP-КЛЮЧ',
-    'footer':'РАБОТАЕТ НА ОГРОМНЫХ КОЛИЧЕСТВАХ ЧАЯ \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'Ещё один попался сегодня, об этом пишут все газеты. <span class="amber">«Подросток арестован в скандале с компьютерными преступлениями»</span>, <span class="amber">«Хакер задержан после взлома банка»</span>...',
-    'm2':'Чёртовы дети. Они все одинаковые.',
-    'm3':'Но ты, с твоей трёхслойной психологией и мозгом технаря 1950-х, когда-нибудь заглядывал за глаза хакера? Задумывался, что им движет?',
-    'm4':'Я хакер, войди в мой мир...',
-    'm5':'Мой мир начинается в школе... Я умнее большинства других детей, эта дрянь, которую нам преподают, скучна мне...',
-    'm6':'Чёртов неудачник. Они все одинаковые.',
-    'm7':'Я в средней школе. Я слушал, как учителя в пятнадцатый раз объясняют, как сократить дробь. Я понимаю это. <span class="highlight">«Нет, госпожа Иванова, я не показал свои вычисления. Я сделал это в уме...»</span>',
-    'm8':'Я сделал открытие сегодня. Я нашёл компьютер. Он делает то, что я хочу. Если он ошибается, это потому что <span class="highlight">я</span> облажался. Не потому что я ему не нравлюсь...',
-    'm9':'И тут это случилось... дверь открылась в мир... несясь по телефонной линии как героин по венам наркомана, посылается электронный импульс... <span class="highlight">плата найдена.</span>',
-    'm10':'<span class="amber">«Вот оно... здесь я принадлежу...»</span>',
-    'm11':"Можешь спорить, мы все одинаковые... нас кормили детским питанием в школе, когда мы голодали по стейку.",
-    'm12':"Это наш мир теперь... мир электрона и переключателя, красота бода. Мы используем уже существующий сервис, не платя за то, что могло бы быть дёшево, если бы им не управляли жадные стяжатели, и вы называете нас преступниками.",
-    'm13':'Мы исследуем... и вы называете нас преступниками. Мы ищем знания... и вы называете нас преступниками. <span class="highlight">Мы существуем без цвета кожи, без национальности, без религиозных предубеждений...</span> и вы называете нас преступниками.',
-    'm14':'Да, я преступник. Моё преступление — любопытство. <span class="highlight">Моё преступление — судить людей по тому, что они говорят и думают, а не по тому, как они выглядят.</span>',
-    'm15':'<span class="red">Я хакер, и это мой манифест.</span> Вы можете остановить этого человека, но не всех нас... <span class="highlight">в конце концов, мы все одинаковые.</span>',
-    'm16':'— +++The Mentor+++, 8 января 1986',
-    'sd-audacious':'Open source &middot; lyogkiy &middot; bez setevykh zaprosov &middot; bez telemetrii',
-    'sd-bitwarden':'Open source &middot; E2E-shifrovanie AES-256 &middot; zero-knowledge &middot; samokhostovanie &middot; nezavisimyy audit',
-    'sd-borgbackup':'Open source &middot; AES-256 na storone klienta &middot; deduplikatsiya &middot; szhatiye &middot; inkremyentnyye rezervnyye kopii',
-    'sd-brave':'Open source &middot; blokiruyet reklamu &amp; trekery &middot; randomizatsiya otpechatka &middot; vstroennoe okno Tor',
-    'sd-debian':'Open source &middot; bez telemetrii &middot; bez proprietary blobov &middot; audit soobshchestvom &middot; stabilnyy tsikl vypuska',
-    'sd-ente':'Open source &middot; E2E-shifrovanie foto &amp; autentifikatora &middot; zero-knowledge &middot; samokhostovanie &middot; nezavisimyy audit',
-    'sd-fossify':'Open source &middot; bez otslezhivaniya &middot; bez reklamy &middot; bez internet-razresheniy &middot; Android-paket v rezhime oflayn',
-    'sd-libretube':'Open source &middot; marshrutizatsiya cherez Piped &middot; bez akkaunti Google &middot; bez otslezhivaniya &middot; vstroenny SponsorBlock',
-    'sd-mullvad':'Open source &middot; strogiy no-log &middot; anonimnyy akkaunt &middot; servery tolko na RAM &middot; prinimayet Monero &amp; nalichnye &middot; audit',
-    'sd-nextcloud':'Open source &middot; polnyy samokhostovanie &middot; optsiya E2E-shifrovaniya &middot; bez dostupa tretyikh lits &middot; sootvetstvuyet GDPR',
-    'sd-notesnook':'Open source &middot; E2E-shifrovanie XChaCha20-Poly1305 &middot; zero-knowledge &middot; samokhostovanie &middot; nezavisimyy audit',
-    'sd-proton':'Open source &middot; E2E-shifrovanie: pochta, VPN, disk &amp; kalendar &middot; zero-knowledge &middot; shveytsarskaya yurisdiktsiya &middot; audit',
-    'sd-signal':'Open source &middot; E2E protokol Signal &middot; sealed sender &middot; minimum metadannykh &middot; ischezayushchiye soobshcheniya',
-    'sd-thunderbird':'Open source &middot; OpenPGP &amp; S/MIME vstroeny &middot; bez telemetrii &middot; bez obyazatelnogo akkaunti',
-    'sd-timeshift':'Open source &middot; snimki sistemy &middot; rsync ili BTRFS &middot; zapla-nir-o-vann-yye rezervnyye kopii &middot; mgnovennyy otkat',
-    'sd-vlc':'Open source &middot; lyubyye formaty &middot; bez telemetrii &middot; bez analitiki &middot; tolko lokalnoye vosproizvedeniye',
-    'sd-windscribe':'Open source &middot; bez logov &middot; vstroenny fayriol &amp; blokirovshchik reklamy &middot; staticheskiye IP &middot; shchedryy besplatnyy plan',
-  },
-  ar:{
-    'intro-hi':'مرحباً',
-    'intro-p1':'أنا ديكستر. أعمل حالياً كمدير عمليات في مجال العملات المشفرة. مدافع راسخ عن البرمجيات مفتوحة المصدر ومؤمن بأهمية الخصوصية الرقمية. هل تبني شيئاً رائعاً؟ لا تتردد في التواصل.',
-    'sh-socials':'تواصل معي','sh-enjoy':'برامج رائعة','sh-manifesto':'بيان الهاكر',
-    'lbl-signal':'سيغنال','lbl-twitter':'تويتر','lbl-telegram':'تيليغرام','lbl-pgp':'مفتاح PGP',
-    'footer':'يعمل بكميات هائلة من الشاي \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'اعتُقل آخر اليوم، والأمر يملأ الصحف. <span class="amber">«مراهق موقوف في فضيحة الجرائم الإلكترونية»</span>، <span class="amber">«هاكر يُعتقل بعد التلاعب بالبنوك»</span>...',
-    'm2':'أيها الأطفال اللعينون. كلهم سواء.',
-    'm3':'لكنك، بعلم النفس المُبالَغ فيه وعقلك التقني من خمسينيات القرن الماضي، هل نظرت يوماً خلف عيون الهاكر؟ هل تساءلت ما الذي يحرّكه؟',
-    'm4':'أنا هاكر، ادخل إلى عالمي...',
-    'm5':'عالمي يبدأ في المدرسة... أنا أذكى من معظم الأطفال الآخرين، هذا الهراء الذي يعلّموننا إياه يُملّني...',
-    'm6':'متأخر دراسياً. كلهم سواء.',
-    'm7':'أنا في المرحلة الإعدادية أو الثانوية. استمعت للمعلمين يشرحون للمرة الخامسة عشرة كيفية تبسيط كسر. أفهم ذلك. <span class="highlight">«لا يا أستاذة، لم أُظهر خطوات حلّي. حللته في ذهني...»</span>',
-    'm8':'اكتشفت شيئاً اليوم. وجدت حاسوباً. يفعل ما أريده. إن أخطأ، فلأنني <span class="highlight">أنا</span> أخطأت. ليس لأنه لا يحبني...',
-    'm9':'ثم حدث... فُتح باب نحو عالم... يندفع عبر خط الهاتف كالهيروين في أوردة مدمن، تُرسل نبضة إلكترونية... <span class="highlight">وتُكتشف لوحة.</span>',
-    'm10':'<span class="amber">«هذا هو... هنا أنتمي...»</span>',
-    'm11':'راهن على أننا كلنا سواء... كانوا يطعموننا طعام الأطفال في المدرسة بينما كنا نجوع إلى اللحم.',
-    'm12':'هذا عالمنا الآن... عالم الإلكترون والمفتاح، جمال معدل النقل. نستخدم خدمة موجودة دون أن ندفع لما يمكن أن يكون رخيصاً لو لم يُديره الجشعون، وتسمّوننا مجرمين.',
-    'm13':'نستكشف... وتسمّوننا مجرمين. نسعى للمعرفة... وتسمّوننا مجرمين. <span class="highlight">نحن موجودون دون لون بشرة، دون جنسية، دون تحيز ديني...</span> وتسمّوننا مجرمين.',
-    'm14':'نعم، أنا مجرم. جريمتي هي الفضول. <span class="highlight">جريمتي هي الحكم على الناس بما يقولون ويفكرون، لا بما يبدون عليه.</span>',
-    'm15':'<span class="red">أنا هاكر، وهذا بياني.</span> قد تُوقفون هذا الفرد، لكنكم لن تُوقفونا جميعاً... <span class="highlight">فنحن في النهاية كلنا سواء.</span>',
-    'm16':'— +++The Mentor+++، 8 يناير 1986',
-    'sd-audacious':'مفتوح المصدر &middot; خفيف الوزن &middot; بدون طلبات شبكة &middot; بدون تتبع بيانات',
-    'sd-bitwarden':'مفتوح المصدر &middot; تشفير E2E بـ AES-256 &middot; صفر معرفة &middot; يمكن استضافته ذاتياً &middot; مراجعة مستقلة',
-    'sd-borgbackup':'مفتوح المصدر &middot; تشفير AES-256 على الجهاز &middot; إزالة التكرار &middot; ضغط البيانات &middot; نسخ احتياطي تزايدي',
-    'sd-brave':'مفتوح المصدر &middot; يحجب الإعلانات &amp; المتتبعين &middot; عشوائية البصمة الرقمية &middot; نافذة Tor مدمجة',
-    'sd-debian':'مفتوح المصدر &middot; بدون تتبع بيانات &middot; بدون مكونات مغلقة &middot; مراجعة مجتمعية &middot; دورة إصدار مستقرة',
-    'sd-ente':'مفتوح المصدر &middot; صور &amp; مصادقة مشفرة E2E &middot; صفر معرفة &middot; يمكن استضافته ذاتياً &middot; مراجعة مستقلة',
-    'sd-fossify':'مفتوح المصدر &middot; بدون تتبع &middot; بدون إعلانات &middot; بدون أذونات إنترنت &middot; تطبيقات أندرويد تعمل دون إنترنت',
-    'sd-libretube':'مفتوح المصدر &middot; يعمل عبر وسيط Piped &middot; بدون حساب Google &middot; بدون تتبع &middot; SponsorBlock مدمج',
-    'sd-mullvad':'مفتوح المصدر &middot; صفر سجلات &middot; حساب مجهول &middot; خوادم RAM فقط &middot; يقبل Monero &amp; النقد &middot; مراجعة مستقلة',
-    'sd-nextcloud':'مفتوح المصدر &middot; استضافة ذاتية كاملة &middot; خيار تشفير E2E &middot; بدون وصول طرف ثالث &middot; متوافق مع GDPR',
-    'sd-notesnook':'مفتوح المصدر &middot; تشفير E2E بـ XChaCha20-Poly1305 &middot; صفر معرفة &middot; يمكن استضافته ذاتياً &middot; مراجعة مستقلة',
-    'sd-proton':'مفتوح المصدر &middot; بريد، VPN، تخزين &amp; تقويم مشفرة E2E &middot; صفر معرفة &middot; قانون سويسري &middot; مراجعة مستقلة',
-    'sd-signal':'مفتوح المصدر &middot; تشفير E2E ببروتوكول Signal &middot; مُرسِل مختوم &middot; حد أدنى من البيانات &middot; رسائل مؤقتة',
-    'sd-thunderbird':'مفتوح المصدر &middot; OpenPGP &amp; S/MIME مدمجان &middot; بدون تتبع بيانات &middot; بدون حسابات إجبارية',
-    'sd-timeshift':'مفتوح المصدر &middot; لقطات النظام &middot; rsync أو BTRFS &middot; نسخ احتياطي مجدول &middot; استرجاع فوري',
-    'sd-vlc':'مفتوح المصدر &middot; يشغل أي تنسيق &middot; بدون تتبع بيانات &middot; بدون تحليلات &middot; تشغيل محلي فقط',
-    'sd-windscribe':'مفتوح المصدر &middot; بدون سجلات &middot; جدار حماية &amp; حاجب إعلانات مدمج &middot; IPs ثابتة &middot; خطة مجانية سخية',
-  },
-  fa:{
-    'intro-hi':'سلام',
-    'intro-p1':'من دکستر هستم. در حال حاضر به عنوان مدیر عملیات در حوزه ارزهای دیجیتال کار می‌کنم. مدافع نرم‌افزار متن‌باز و معتقد به حریم خصوصی دیجیتال. چیز جالبی می‌سازید؟ خوشحال می‌شوم بشنوم.',
-    'sh-socials':'شبکه‌های اجتماعی','sh-enjoy':'نرم‌افزار جادویی','sh-manifesto':'مانیفست هکر',
-    'lbl-signal':'سیگنال','lbl-twitter':'توییتر','lbl-telegram':'تلگرام','lbl-pgp':'کلید PGP',
-    'footer':'با مقادیر زیادی چای کار می‌کند \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'یکی دیگر امروز گرفتار شد، در همه روزنامه‌هاست. <span class="amber">«نوجوان در رسوایی جرایم رایانه‌ای دستگیر شد»</span>، <span class="amber">«هکر پس از دستکاری بانکی دستگیر شد»</span>...',
-    'm2':'بچه‌های لعنتی. همه‌شان شبیه هم هستند.',
-    'm3':'اما آیا تو، با روان‌شناسی سه‌تکه‌ات و مغز تکنولوژیک دهه ۵۰، هرگز پشت چشمان هکر را نگاه کردی؟ آیا تعجب کردی که چه چیزی او را به حرکت وا می‌دارد؟',
-    'm4':'من یک هکر هستم، وارد دنیای من شو...',
-    'm5':'دنیای من با مدرسه شروع می‌شود... من از اکثر بچه‌های دیگر باهوش‌تر هستم، این مزخرف‌هایی که به ما می‌آموزند خسته‌ام می‌کند...',
-    'm6':'دانش‌آموز بد. همه‌شان شبیه هم هستند.',
-    'm7':'در راهنمایی یا دبیرستان هستم. پانزدهمین بار است که به معلمان گوش می‌دهم که توضیح می‌دهند چگونه یک کسر را ساده کنیم. می‌فهمم. <span class="highlight">«نه، خانم، کار خود را نشان ندادم. در ذهنم حل کردم...»</span>',
-    'm8':'امروز کشف کردم. یک کامپیوتر یافتم. آنچه می‌خواهم انجام می‌دهد. اگر اشتباه کند به این دلیل است که <span class="highlight">من</span> اشتباه کردم. نه به این دلیل که من را دوست ندارد...',
-    'm9':'و بعد اتفاق افتاد... دری به دنیایی باز شد... از طریق خط تلفن مانند هروئین در رگ‌های یک معتاد، یک پالس الکترونیکی فرستاده می‌شود... <span class="highlight">یک برد پیدا می‌شود.</span>',
-    'm10':'<span class="amber">«این است... اینجاست که متعلقم...»</span>',
-    'm11':'شرط می‌بندی که همه ما شبیه هم هستیم... در مدرسه با غذای بچه‌ها تغذیه شدیم در حالی که برای استیک گرسنه بودیم.',
-    'm12':'این دنیای ما حالاست... دنیای الکترون و کلید. از یک سرویس موجود استفاده می‌کنیم بدون اینکه برای چیزی که می‌توانست ارزان باشد پول بپردازیم، و شما ما را مجرم می‌نامید.',
-    'm13':'کاوش می‌کنیم... و شما ما را مجرم می‌نامید. دنبال دانش می‌گردیم... و شما ما را مجرم می‌نامید. <span class="highlight">بدون رنگ پوست، بدون ملیت، بدون تعصب مذهبی وجود داریم...</span> و شما ما را مجرم می‌نامید.',
-    'm14':'بله، من مجرم هستم. جرم من کنجکاوی است. <span class="highlight">جرم من قضاوت مردم بر اساس آنچه می‌گویند و فکر می‌کنند است، نه آنچه به نظر می‌رسند.</span>',
-    'm15':'<span class="red">من یک هکر هستم، و این مانیفست من است.</span> می‌توانید این فرد را متوقف کنید، اما همه ما را نمی‌توانید... <span class="highlight">بالاخره، همه ما شبیه هم هستیم.</span>',
-    'm16':'— +++The Mentor+++، ۸ ژانویه ۱۹۸۶',
-    'sd-audacious':'متن‌باز &middot; سبک &middot; بدون درخواست شبکه &middot; بدون تله‌متری',
-    'sd-bitwarden':'متن‌باز &middot; رمزنگاری E2E با AES-256 &middot; صفر دانش &middot; قابل خود-میزبانی &middot; ممیزی مستقل',
-    'sd-borgbackup':'متن‌باز &middot; رمزنگاری AES-256 در سمت کلاینت &middot; حذف تکراری &middot; فشرده‌سازی &middot; پشتیبان‌گیری تدریجی',
-    'sd-brave':'متن‌باز &middot; مسدودسازی تبلیغات &amp; ردیاب‌ها &middot; تصادفی‌سازی اثر انگشت &middot; پنجره Tor داخلی',
-    'sd-debian':'متن‌باز &middot; بدون تله‌متری &middot; بدون اجزای اختصاصی &middot; ممیزی توسط جامعه &middot; چرخه انتشار پایدار',
-    'sd-ente':'متن‌باز &middot; عکس‌ها &amp; احراز هویت رمزنگاری‌شده E2E &middot; صفر دانش &middot; قابل خود-میزبانی &middot; ممیزی مستقل',
-    'sd-fossify':'متن‌باز &middot; بدون ردیابی &middot; بدون تبلیغات &middot; بدون مجوز اینترنت &middot; مجموعه اندروید آفلاین‌محور',
-    'sd-libretube':'متن‌باز &middot; مسیریابی از طریق پروکسی Piped &middot; بدون حساب Google &middot; بدون ردیابی &middot; SponsorBlock داخلی',
-    'sd-mullvad':'متن‌باز &middot; بدون لاگ &middot; حساب ناشناس &middot; سرورهای فقط RAM &middot; پذیرش Monero &amp; نقد &middot; ممیزی شده',
-    'sd-nextcloud':'متن‌باز &middot; خود-میزبانی کامل &middot; گزینه رمزنگاری E2E &middot; بدون دسترسی شخص ثالث &middot; مطابق GDPR',
-    'sd-notesnook':'متن‌باز &middot; رمزنگاری E2E با XChaCha20-Poly1305 &middot; صفر دانش &middot; قابل خود-میزبانی &middot; ممیزی مستقل',
-    'sd-proton':'متن‌باز &middot; ایمیل، VPN، درایو &amp; تقویم رمزنگاری‌شده E2E &middot; صفر دانش &middot; حوزه قضایی سوئیس &middot; ممیزی شده',
-    'sd-signal':'متن‌باز &middot; رمزنگاری E2E پروتکل Signal &middot; فرستنده مهر و موم‌شده &middot; حداقل متادیتا &middot; پیام‌های خودحذف‌شونده',
-    'sd-thunderbird':'متن‌باز &middot; OpenPGP &amp; S/MIME داخلی &middot; بدون تله‌متری &middot; بدون حساب اجباری',
-    'sd-timeshift':'متن‌باز &middot; عکس‌های سیستم &middot; rsync یا BTRFS &middot; پشتیبان‌گیری برنامه‌ریزی‌شده &middot; بازگشت فوری',
-    'sd-vlc':'متن‌باز &middot; پخش هر فرمتی &middot; بدون تله‌متری &middot; بدون تحلیلگر &middot; فقط پخش محلی',
-    'sd-windscribe':'متن‌باز &middot; بدون لاگ &middot; فایروال &amp; مسدودساز تبلیغات داخلی &middot; IP ثابت &middot; طرح رایگان سخاوتمندانه',
-  },
-  ja:{
-    'intro-hi':'こんにちは',
-    'intro-p1':'私はデクスターです。現在、暗号通貨分野でオペレーションマネージャーとして働いています。オープンソースソフトウェアの強い支持者であり、デジタルプライバシーを深く信じています。何かクールなものを作っていますか？気軽にご連絡ください。',
-    'sh-socials':'ソーシャル','sh-enjoy':'魔法のソフトウェア','sh-manifesto':'ハッカー宣言',
-    'lbl-signal':'シグナル','lbl-twitter':'ツイッター','lbl-telegram':'テレグラム','lbl-pgp':'PGPキー',
-    'footer':'大量のお茶で動いています \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'また一人今日捕まった。新聞で大きく報じられている。<span class="amber">「コンピュータ犯罪スキャンダルで少年逮捕」</span>、<span class="amber">「銀行不正操作でハッカー逮捕」</span>...',
-    'm2':'くそガキめ。みんな同じだ。',
-    'm3':'しかし、あなたは三つ揃いの心理学と1950年代のテクノ頭脳で、ハッカーの目の奥を覗いたことがあるか？何が彼を突き動かすか考えたことがあるか？',
-    'm4':'私はハッカーだ、私の世界へ入れ...',
-    'm5':'私の世界は学校から始まる…私は他の子供たちのほとんどより賢い、彼らが教えるこのくだらないことは退屈だ…',
-    'm6':'駄目な奴。みんな同じだ。',
-    'm7':'中学や高校にいる。先生が十五回目に分数の簡略化を説明するのを聞いてきた。理解している。<span class="highlight">「いいえ、先生、作業を見せませんでした。頭の中でやりました...」</span>',
-    'm8':'今日発見をした。コンピュータを見つけた。それは私が望むことをする。間違いを犯すなら、それは<span class="highlight">私が</span>台無しにしたからだ。私を嫌いなのではない...',
-    'm9':'そして起きた...世界への扉が開いた...麻薬中毒者の静脈を流れるヘロインのように電話線を駆け抜け、電子パルスが送り出される...<span class="highlight">ボードが見つかった。</span>',
-    'm10':'<span class="amber">「これだ...ここが私の居場所だ...」</span>',
-    'm11':'私たちはみんな同じだと確かに言える…学校でステーキを求めていたのに離乳食を食べさせられた。',
-    'm12':'これが今の私たちの世界だ…電子とスイッチの世界。強欲な者たちが運営していなければ安価であるはずのサービスを料金を払わずに使い、あなた方は私たちを犯罪者と呼ぶ。',
-    'm13':'私たちは探索する…そしてあなた方は私たちを犯罪者と呼ぶ。私たちは知識を求める…そしてあなた方は私たちを犯罪者と呼ぶ。<span class="highlight">私たちは肌の色なく、国籍なく、宗教的偏見なく存在する...</span>そしてあなた方は私たちを犯罪者と呼ぶ。',
-    'm14':'そう、私は犯罪者だ。私の犯罪は好奇心だ。<span class="highlight">私の犯罪は、外見ではなく言葉と考えで人を判断することだ。</span>',
-    'm15':'<span class="red">私はハッカーだ、これが私のマニフェストだ。</span>あなたはこの個人を止めることができる、しかし私たち全員は止められない...<span class="highlight">結局のところ、私たちはみんな同じだ。</span>',
-    'm16':'— +++The Mentor+++、1986年1月8日',
-    'sd-audacious':'オープンソース &middot; 軽量 &middot; ネット通信なし &middot; テレメトリなし',
-    'sd-bitwarden':'オープンソース &middot; AES-256 E2E暗号化 &middot; ゼロ知識 &middot; セルフホスト可 &middot; 独立監査済み',
-    'sd-borgbackup':'オープンソース &middot; クライアント側AES-256暗号化 &middot; 重複排除 &middot; 圧縮 &middot; 増分バックアップ',
-    'sd-brave':'オープンソース &middot; 広告&amp;トラッカーをデフォルトでブロック &middot; 指紋ランダム化 &middot; Torウィンドウ内蔵',
-    'sd-debian':'オープンソース &middot; テレメトリなし &middot; プロプライエタリブロブなし &middot; コミュニティ監査済み &middot; 安定リリースサイクル',
-    'sd-ente':'オープンソース &middot; 写真&amp;認証のE2E暗号化 &middot; ゼロ知識 &middot; セルフホスト可 &middot; 独立監査済み',
-    'sd-fossify':'オープンソース &middot; 追跡なし &middot; 広告なし &middot; インターネット権限なし &middot; オフライン優先Androidスイート',
-    'sd-libretube':'オープンソース &middot; Pipedプロキシ経由 &middot; Googleアカウント不要 &middot; 追跡なし &middot; SponsorBlock内蔵',
-    'sd-mullvad':'オープンソース &middot; 厳格なノーログ &middot; 匿名アカウント &middot; RAMのみのサーバー &middot; Monero&amp;現金対応 &middot; 監査済み',
-    'sd-nextcloud':'オープンソース &middot; フルセルフホスト &middot; E2E暗号化オプション &middot; 第三者アクセスなし &middot; GDPR準拠',
-    'sd-notesnook':'オープンソース &middot; XChaCha20-Poly1305 E2E暗号化 &middot; ゼロ知識 &middot; セルフホスト可 &middot; 独立監査済み',
-    'sd-proton':'オープンソース &middot; メール・VPN・ドライブ&amp;カレンダーE2E暗号化 &middot; ゼロ知識 &middot; スイス管轄 &middot; 監査済み',
-    'sd-signal':'オープンソース &middot; SignalプロトコルE2E暗号化 &middot; シールドセンダー &middot; 最小メタデータ &middot; メッセージ自動削除',
-    'sd-thunderbird':'オープンソース &middot; OpenPGP&amp;S/MIME内蔵 &middot; テレメトリなし &middot; アカウント不要',
-    'sd-timeshift':'オープンソース &middot; システムスナップショット &middot; rsyncまたはBTRFS &middot; 定期バックアップ &middot; 即時ロールバック',
-    'sd-vlc':'オープンソース &middot; あらゆるフォーマット対応 &middot; テレメトリなし &middot; 分析なし &middot; ローカル再生のみ',
-    'sd-windscribe':'オープンソース &middot; ログなし &middot; ファイアウォール&amp;広告ブロッカー内蔵 &middot; 固定IP &middot; 充実した無料プラン',
-  },
-  zh:{
-    'intro-hi':'你好',
-    'intro-p1':'我是Dexter，目前在加密货币领域担任运营经理。坚定支持开源软件，深信数字隐私的重要性。正在构建什么酷东西？欢迎联系我。',
-    'sh-socials':'我的社交','sh-enjoy':'神奇软件','sh-manifesto':'黑客宣言',
-    'lbl-signal':'Signal','lbl-twitter':'推特','lbl-telegram':'电报','lbl-pgp':'PGP密钥',
-    'footer':'由大量茶水驱动 \uD83C\uDFF4\u200D\u2620\uFE0F',
-    'm1':'又有一个今天被抓了，报纸上到处都是。<span class="amber">《少年因计算机犯罪丑闻被捕》</span>，<span class="amber">《黑客因银行篡改被捕》</span>...',
-    'm2':'该死的孩子们。他们都一样。',
-    'm3':'但是你，用你那三件套的心理学和1950年代的技术大脑，有没有看过黑客眼睛背后的世界？有没有想过是什么驱动了他？',
-    'm4':'我是一个黑客，进入我的世界...',
-    'm5':'我的世界从学校开始...我比大多数其他孩子聪明，他们教给我们的这些废话让我感到厌倦...',
-    'm6':'该死的差生。他们都一样。',
-    'm7':'我在初中或高中。我听老师第十五次解释如何化简分数。我明白了。<span class="highlight">"不，史密斯老师，我没有展示我的工作过程。我在脑子里做的..."</span>',
-    'm8':'我今天有了一个发现。我找到了一台电脑。它做我想要它做的事。如果它犯了错，那是因为<span class="highlight">我</span>搞砸了。不是因为它不喜欢我...',
-    'm9':'然后它发生了...一扇门打开通向一个世界...像海洛因流经瘾君子的静脉一样在电话线上飞驰，一个电子脉冲被发送出去...<span class="highlight">一块电路板被找到了。</span>',
-    'm10':'<span class="amber">"就是这个...这就是我归属的地方..."</span>',
-    'm11':'打赌我们都一样...我们在学校被喂了婴儿食品，而我们渴望的是牛排。',
-    'm12':'这是我们现在的世界...电子和开关的世界。我们使用已经存在的服务而不为本可以便宜的东西付费，如果不是由贪婪者经营的话，你们称我们为罪犯。',
-    'm13':'我们探索...你们称我们为罪犯。我们追求知识...你们称我们为罪犯。<span class="highlight">我们不分肤色，不分国籍，没有宗教偏见地存在...</span>你们称我们为罪犯。',
-    'm14':'是的，我是一个罪犯。我的罪行是好奇心。<span class="highlight">我的罪行是根据人们所说和所想来判断他们，而不是他们的外表。</span>',
-    'm15':'<span class="red">我是一个黑客，这是我的宣言。</span>你可以阻止这个个体，但你阻止不了我们所有人...<span class="highlight">毕竟，我们都一样。</span>',
-    'm16':'— +++The Mentor+++，1986年1月8日',
-    'sd-audacious':'开源 &middot; 轻量 &middot; 无网络请求 &middot; 无遥测',
-    'sd-bitwarden':'开源 &middot; AES-256 E2E加密 &middot; 零知识 &middot; 可自托管 &middot; 独立审计',
-    'sd-borgbackup':'开源 &middot; 客户端AES-256加密 &middot; 去重 &middot; 压缩 &middot; 增量备份',
-    'sd-brave':'开源 &middot; 默认拦截广告&amp;追踪器 &middot; 指纹随机化 &middot; 内置Tor窗口',
-    'sd-debian':'开源 &middot; 无遥测 &middot; 无专有二进制 &middot; 社区审计 &middot; 稳定发布周期',
-    'sd-ente':'开源 &middot; 照片&amp;验证E2E加密 &middot; 零知识 &middot; 可自托管 &middot; 独立审计',
-    'sd-fossify':'开源 &middot; 无追踪 &middot; 无广告 &middot; 无网络权限 &middot; 离线优先Android应用套件',
-    'sd-libretube':'开源 &middot; 通过Piped代理路由 &middot; 无需Google账号 &middot; 无追踪 &middot; 内置SponsorBlock',
-    'sd-mullvad':'开源 &middot; 严格零日志 &middot; 匿名账户 &middot; 纯内存服务器 &middot; 接受Monero&amp;现金 &middot; 已审计',
-    'sd-nextcloud':'开源 &middot; 完全自托管 &middot; E2E加密选项 &middot; 无第三方访问 &middot; 符合GDPR',
-    'sd-notesnook':'开源 &middot; XChaCha20-Poly1305 E2E加密 &middot; 零知识 &middot; 可自托管 &middot; 独立审计',
-    'sd-proton':'开源 &middot; 邮件、VPN、网盘&amp;日历E2E加密 &middot; 零知识 &middot; 瑞士司法管辖 &middot; 已审计',
-    'sd-signal':'开源 &middot; Signal协议E2E加密 &middot; 密封发送者 &middot; 最少元数据 &middot; 阅后即焚消息',
-    'sd-thunderbird':'开源 &middot; 内置OpenPGP&amp;S/MIME &middot; 无遥测 &middot; 无强制账号',
-    'sd-timeshift':'开源 &middot; 系统快照 &middot; rsync或BTRFS &middot; 定时备份 &middot; 即时回滚',
-    'sd-vlc':'开源 &middot; 播放任意格式 &middot; 无遥测 &middot; 无分析 &middot; 仅本地播放',
-    'sd-windscribe':'开源 &middot; 零日志 &middot; 内置防火墙&amp;广告拦截 &middot; 静态IP &middot; 慈善免费套餐',
-  },
-};
-let currentLang='en';
-function applyLang(lang){
-  const t=T[lang]; if(!t)return;
-  currentLang=lang;
-  document.getElementById('lang-label').textContent=lang.toUpperCase();
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const k=el.dataset.i18n;
-    if(t[k]!==undefined) el.innerHTML=t[k];
-  });
-  // re-attach blink cursor if intro-hi was replaced
-  const hi=document.querySelector('[data-i18n="intro-hi"]');
-  if(hi&&!hi.querySelector('.cursor-blink')){
-    const span=document.createElement('span');span.className='cursor-blink';hi.appendChild(span);
-  }
-  document.querySelectorAll('.lang-opt').forEach(o=>o.classList.toggle('active',o.dataset.lang===lang));
-  // RTL for Arabic
-  document.documentElement.setAttribute('dir',(lang==='ar'||lang==='fa')?'rtl':'ltr');
-}
-
-// ── LANGUAGE DROPDOWN — injected on body to escape all stacking contexts ──
-const LANGS=[
-  {code:'en',flag:'🇬🇧',label:'ENGLISH'},
-  {code:'de',flag:'🇩🇪',label:'DEUTSCH'},
-  {code:'fr',flag:'🇫🇷',label:'FRANÇAIS'},
-  {code:'es',flag:'🇪🇸',label:'ESPAÑOL'},
-  {code:'pt',flag:'🇧🇷',label:'PORTUGUÊS'},
-  {code:'nl',flag:'🇳🇱',label:'NEDERLANDS'},
-  {code:'ru',flag:'🇷🇺',label:'РУССКИЙ'},
-  {code:'ar',flag:'🇸🇦',label:'العربية'},
-  {code:'fa',flag:'🇮🇷',label:'فارسی'},
-  {code:'ja',flag:'🇯🇵',label:'日本語'},
-  {code:'zh',flag:'🇨🇳',label:'中文'},
-];
-
-// Build dropdown and inject directly on body
-const tDrop=document.createElement('div');
-tDrop.id='lang-dropdown';
-LANGS.forEach(l=>{
-  const d=document.createElement('div');
-  d.className='lang-opt'+(l.code==='en'?' active':'');
-  d.dataset.lang=l.code;
-  d.innerHTML=`<span class="flag">${l.flag}</span> ${l.label}`;
-  d.addEventListener('click',e=>{
-    e.stopPropagation();
-    applyLang(l.code);
-    tDrop.classList.remove('open');
-  });
-  tDrop.appendChild(d);
-});
-document.body.appendChild(tDrop);
-
-const tBtn=document.getElementById('translate-btn');
-
-function positionDropdown(){
-  const r=tBtn.getBoundingClientRect();
-  const dropH=Math.min(360,window.innerHeight*0.7);
-  const spaceBelow=window.innerHeight-r.bottom-8;
-  const spaceAbove=r.top-8;
-  if(spaceBelow>=120||spaceBelow>=spaceAbove){
-    tDrop.style.top=(r.bottom+4)+'px';
-  } else {
-    tDrop.style.top=(r.top-dropH-4)+'px';
-  }
-  const isRTL=document.documentElement.getAttribute('dir')==='rtl';
-  const dropW=Math.min(240,window.innerWidth-16);
-  tDrop.style.width=dropW+'px';
-  if(isRTL){
-    // In RTL the button is on the LEFT side; anchor dropdown to button's left edge
-    const leftEdge=Math.max(4,r.left);
-    tDrop.style.left=leftEdge+'px';
-    tDrop.style.right='auto';
-  } else {
-    // LTR: anchor to right edge of button
-    const rightEdge=window.innerWidth-r.right;
-    tDrop.style.right=Math.max(4,rightEdge)+'px';
-    tDrop.style.left='auto';
-  }
-}
-
-tBtn.addEventListener('click',e=>{
-  e.stopPropagation();
-  const opening=!tDrop.classList.contains('open');
-  if(opening) positionDropdown();
-  tDrop.classList.toggle('open',opening);
-});
-window.addEventListener('resize',()=>{
-  if(tDrop.classList.contains('open')) positionDropdown();
-});
-document.addEventListener('click',()=>tDrop.classList.remove('open'));
-document.addEventListener('scroll',()=>{
-  if(tDrop.classList.contains('open')) positionDropdown();
-},{passive:true});
-
-
-
-// TETRIS BG
-(function(){
-  const canvas=document.getElementById('tetris-bg'),ctx=canvas.getContext('2d');
-  const B=24,C=['#00ff41','#00cc33','#009922','#007711'];
-  const P=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]],[[1,0],[1,0],[1,1]],[[0,1],[0,1],[1,1]]];
-  let cols,rows,board,fallers;
-  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;cols=Math.ceil(canvas.width/B)+2;rows=Math.ceil(canvas.height/B)+4;board=Array.from({length:rows},()=>Array(cols).fill(null));fallers=[];for(let i=0;i<7;i++)spawn();}
-  function spawn(){const s=P[Math.floor(Math.random()*P.length)];fallers.push({s,x:Math.floor(Math.random()*(cols-s[0].length)),y:-s.length-Math.floor(Math.random()*rows),c:C[Math.floor(Math.random()*C.length)],v:0.012+Math.random()*0.022});}
-  function place(f){f.s.forEach((r,ry)=>r.forEach((c,rx)=>{if(!c)return;const by=Math.floor(f.y)+ry,bx=f.x+rx;if(by>=0&&by<rows&&bx>=0&&bx<cols)board[by][bx]=f.c;}));for(let r=rows-1;r>=0;r--)if(board[r].every(c=>c))board.splice(r,1),board.unshift(Array(cols).fill(null));}
-  function can(f,dy){return f.s.every((r,ry)=>r.every((c,rx)=>{if(!c)return true;const ny=Math.floor(f.y+dy)+ry,nx=f.x+rx;if(ny>=rows)return false;if(ny<0)return true;return!board[ny][nx];}));}
-  function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);board.forEach((r,ry)=>r.forEach((c,rx)=>{if(!c)return;ctx.fillStyle=c;ctx.fillRect(rx*B,ry*B,B-1,B-1);}));fallers.forEach(f=>{ctx.fillStyle=f.c;f.s.forEach((r,ry)=>r.forEach((c,rx)=>{if(!c)return;ctx.fillRect((f.x+rx)*B,(f.y+ry)*B,B-1,B-1);}));});}
-  let last=null;
-  function loop(ts){if(!last)last=ts;const dt=(ts-last)/1000;last=ts;fallers.forEach((f,i)=>{const dy=f.v*60*dt;if(can(f,dy))f.y+=dy;else{place(f);fallers.splice(i,1);spawn();}});while(fallers.length<6)spawn();draw();requestAnimationFrame(loop);}
-  resize();window.addEventListener('resize',resize);requestAnimationFrame(loop);
-})();
+  // IP reveal
+  (function(){
+    function d(){
+      var b = document.getElementById("cf-footer-item-ip"),
+          c = document.getElementById("cf-footer-ip-reveal");
+      if(b && "classList" in b){
+        b.classList.remove("hidden");
+        c.addEventListener("click", function(){
+          c.classList.add("hidden");
+          document.getElementById("cf-footer-ip").classList.remove("hidden");
+        });
+      }
+    }
+    document.addEventListener && document.addEventListener("DOMContentLoaded", d);
+  })();
 </script>
 </body>
 </html>
