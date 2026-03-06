@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>nullvector // software</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #0a0a08;
+      --surface: #111110;
+      --border:  #2a2a24;
+      --accent:  #c8f53a;
+      --text:    #d4d4c8;
+      --muted:   #5a5a52;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Scanline */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 2px,
+        rgba(0,0,0,0.07) 2px,
+        rgba(0,0,0,0.07) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Noise */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Language switcher */
+    .lang-bar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-bottom: 36px;
+    }
+
+    .lang-btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 7px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      user-select: none;
+    }
+
+    .lang-btn:hover  { border-color: var(--text); color: var(--text); }
+    .lang-btn.active { border-color: var(--accent); color: var(--accent); }
+
+    /* Section label */
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease forwards 0.1s;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Software list */
+    .sw-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease forwards 0.2s;
+    }
+
+    .sw-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      position: relative;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .sw-item::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 2px;
+      background: var(--accent);
+      transform: scaleY(0);
+      transition: transform 0.18s ease;
+    }
+    .sw-item:hover         { border-color: var(--accent); background: rgba(200,245,58,0.03); }
+    .sw-item:hover::before { transform: scaleY(1); }
+
+    .sw-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .sw-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .sw-links {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .sw-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .sw-link:hover       { border-color: var(--accent); color: var(--accent); }
+    .sw-link img         { width: 11px; height: 11px; display: block; }
+    .sw-link svg         { width: 11px; height: 11px; display: block; fill: currentColor; }
+
+    .sw-desc {
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1.85;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 700px) {
+      .container { padding: 24px 16px; }
+    }
+
+    @media (min-width: 701px) {
+      .sw-desc { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="lang-bar">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn"        onclick="setLang('de')">DE</button>
+      <button class="lang-btn"        onclick="setLang('fr')">FR</button>
+      <button class="lang-btn"        onclick="setLang('es')">ES</button>
+      <button class="lang-btn"        onclick="setLang('zh')">ZH</button>
+      <button class="lang-btn"        onclick="setLang('ar')">AR</button>
+      <button class="lang-btn"        onclick="setLang('fa')">FA</button>
+    </div>
+
+    <div class="section-label" id="label-sw">software</div>
+
+    <ul class="sw-list" id="sw-list">
+
+      <!-- Audacious -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Audacious</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://audacious-media-player.org" target="_blank" rel="noopener" title="Website">
+              <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18A9 9 0 0 0 12 3zm0 2a7 7 0 0 1 7 7 7 7 0 0 1-7 7 7 7 0 0 1-7-7 7 7 0 0 1 7-7zm-1 3v4.27A2 2 0 0 0 10 14a2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2 2 2 0 0 0-.5.07V9.5l3-.85V7l-4 1.15V8z"/></svg>
+            </a>
+            <a class="sw-link" href="https://github.com/audacious-media-player/audacious" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-audacious">Open source · lightweight · no network calls · no telemetry</span>
+      </li>
+
+      <!-- Bitwarden -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Bitwarden</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://bitwarden.com" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/bitwarden/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/bitwarden" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/bitwarden" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/Bitwarden/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-bitwarden">Open source · AES-256 E2E encrypted · zero-knowledge · self-hostable · independently audited</span>
+      </li>
+
+      <!-- BorgBackup -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">BorgBackup</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://www.borgbackup.org" target="_blank" rel="noopener" title="Website">
+              <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.86.18-1a3 3 0 0 0-6 0c0 .14.11.56.18 1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-8-3a1 1 0 0 1 1 1c0 .46-.42 1.55-.72 2h-.56C11.42 5.55 11 4.46 11 4a1 1 0 0 1 1-1zm8 17H4V8h16v12zm-9-7H9v-2h2v2zm4 0h-2v-2h2v2z"/></svg>
+            </a>
+            <a class="sw-link" href="https://github.com/borgbackup/borg" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-borgbackup">Open source · AES-256 client-side encrypted · deduplicated · compressed · incremental backups</span>
+      </li>
+
+      <!-- Brave -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Brave</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://brave.com" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/brave/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/brave/brave-browser" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/brave" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/brave_browser/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-brave">Open source · blocks ads &amp; trackers by default · fingerprint randomisation · built-in Tor window</span>
+      </li>
+
+      <!-- DarkFi -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Dark Fi</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://dark.fi" target="_blank" rel="noopener" title="Website">
+              <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c4.97 0 9-4.03 9-9a9 9 0 0 0-9-9zm0 2c.34 0 .67.02 1 .07A7 7 0 0 1 13 19.93 7.002 7.002 0 0 1 5 12c0-3.87 3.13-7 7-7z"/></svg>
+            </a>
+            <a class="sw-link" href="https://github.com/darkrenaissance/darkfi" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/darkfi_project" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-darkfi">Open source · anonymous L1 blockchain · fully private transactions by default · p2p architecture · no trusted setup · ZK-proof based</span>
+      </li>
+
+      <!-- Debian -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Debian</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://www.debian.org" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/debian/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/debian" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://mastodon.social/@debian" target="_blank" rel="noopener" title="Mastodon">
+              <img src="https://cdn.simpleicons.org/mastodon/d4d4c8" alt="Mastodon">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-debian">Open source · no telemetry · no proprietary blobs by default · community audited · stable release cycle</span>
+      </li>
+
+      <!-- Ente -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Ente</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://ente.io" target="_blank" rel="noopener" title="Website">
+              <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20c9 0 12-8 12-8-1 2-2 4-4 6 0 0-6 0-6-6 3 0 8.5-2 10-8-1 2.5-3.5 4-3 6z"/></svg>
+            </a>
+            <a class="sw-link" href="https://github.com/ente-io/ente" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/ente_io" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/ente/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-ente">Open source · E2E encrypted photos &amp; auth · zero-knowledge · self-hostable · independently audited</span>
+      </li>
+
+      <!-- Fossify -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Fossify</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://www.fossify.org" target="_blank" rel="noopener" title="Website">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </a>
+            <a class="sw-link" href="https://github.com/FossifyOrg" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://f-droid.org/en/packages/?q=fossify" target="_blank" rel="noopener" title="F-Droid">
+              <img src="https://cdn.simpleicons.org/fdroid/d4d4c8" alt="F-Droid">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-fossify">Open source · no tracking · no ads · no internet permissions · offline-first Android suite</span>
+      </li>
+
+      <!-- LibreTube -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">LibreTube</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://libretube.dev" target="_blank" rel="noopener" title="Website">
+              <svg viewBox="0 0 24 24"><path d="M21 3H3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-9 13-5-3 5-3v6z"/></svg>
+            </a>
+            <a class="sw-link" href="https://github.com/libre-tube/LibreTube" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://f-droid.org/packages/com.github.libretube/" target="_blank" rel="noopener" title="F-Droid">
+              <img src="https://cdn.simpleicons.org/fdroid/d4d4c8" alt="F-Droid">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-libretube">Open source · routes via Piped proxy · no Google account · no tracking · SponsorBlock built-in</span>
+      </li>
+
+      <!-- Monero -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Monero</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://www.getmonero.org" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/monero/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/monero-project/monero" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/monero" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/Monero/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-monero">Open source · privacy by default · stealth addresses · RingCT + Bulletproofs · untraceable transactions · fungible</span>
+      </li>
+
+      <!-- Mullvad -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Mullvad</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://mullvad.net" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/mullvad/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/mullvad/mullvadvpn-app" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/mullvadnet" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/mullvadvpn/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-mullvad">Open source · strict no-logs · anonymous account · RAM-only servers · accepts Monero &amp; cash · audited</span>
+      </li>
+
+      <!-- Nextcloud -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Nextcloud</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://nextcloud.com" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/nextcloud/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/nextcloud" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/Nextclouders" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://mastodon.social/@nextcloud" target="_blank" rel="noopener" title="Mastodon">
+              <img src="https://cdn.simpleicons.org/mastodon/d4d4c8" alt="Mastodon">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-nextcloud">Open source · fully self-hosted · E2E encryption option · no third-party access · GDPR compliant</span>
+      </li>
+
+      <!-- Notesnook -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Notesnook</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://notesnook.com" target="_blank" rel="noopener" title="Website">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6zm2-5h8v2H8v-2zm0-4h4v2H8v-2z"/></svg>
+            </a>
+            <a class="sw-link" href="https://github.com/streetwriters/notesnook" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/notesnook" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://fosstodon.org/@notesnook" target="_blank" rel="noopener" title="Mastodon">
+              <img src="https://cdn.simpleicons.org/mastodon/d4d4c8" alt="Mastodon">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-notesnook">Open source · XChaCha20-Poly1305 E2E encrypted · zero-knowledge · self-hostable · independently audited</span>
+      </li>
+
+      <!-- Proton Suite -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Proton Suite</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://proton.me" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/proton/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/ProtonMail" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/ProtonPrivacy" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/ProtonMail/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-proton">Open source · E2E encrypted mail, VPN, drive &amp; calendar · zero-knowledge · Swiss jurisdiction · audited</span>
+      </li>
+
+      <!-- Secret Network -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Secret Network</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://scrt.network" target="_blank" rel="noopener" title="Website">
+              <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4a3 3 0 0 1 3 3c0 1.86-1.72 5-3 6.65C10.72 13 9 9.86 9 8a3 3 0 0 1 3-3z"/></svg>
+            </a>
+            <a class="sw-link" href="https://github.com/scrtlabs/SecretNetwork" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/SecretNetwork" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/SecretNetwork/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-secret">Open source · privacy-preserving smart contracts · encrypted state by default · TEE-based confidential computing · programmable privacy</span>
+      </li>
+
+      <!-- Signal -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Signal</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://signal.org" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/signal/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/signalapp" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/signalapp" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/Signal/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-signal">Open source · Signal Protocol E2E encryption · sealed sender · minimal metadata · disappearing messages</span>
+      </li>
+
+      <!-- Thunderbird -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Thunderbird</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://www.thunderbird.net" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/thunderbird/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/mozilla/releases-comm-central" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/mozthunderbird" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://mastodon.online/@thunderbird" target="_blank" rel="noopener" title="Mastodon">
+              <img src="https://cdn.simpleicons.org/mastodon/d4d4c8" alt="Mastodon">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-thunderbird">Open source · OpenPGP &amp; S/MIME built-in · no telemetry · no forced accounts</span>
+      </li>
+
+      <!-- Timeshift -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Timeshift</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://github.com/linuxmint/timeshift" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-timeshift">Open source · system snapshots · rsync or BTRFS · scheduled backups · instant rollback</span>
+      </li>
+
+      <!-- VLC -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">VLC</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://www.videolan.org/vlc/" target="_blank" rel="noopener" title="Website">
+              <img src="https://cdn.simpleicons.org/vlcmediaplayer/d4d4c8" alt="Website">
+            </a>
+            <a class="sw-link" href="https://github.com/videolan/vlc" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/videolan" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/VLC/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-vlc">Open source · plays any format · no telemetry · no analytics · local playback only</span>
+      </li>
+
+      <!-- Windscribe -->
+      <li class="sw-item">
+        <div class="sw-header">
+          <span class="sw-name">Windscribe</span>
+          <div class="sw-links">
+            <a class="sw-link" href="https://windscribe.com" target="_blank" rel="noopener" title="Website">
+              <svg viewBox="0 0 24 24"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/></svg>
+            </a>
+            <a class="sw-link" href="https://github.com/Windscribe/Desktop-App" target="_blank" rel="noopener" title="GitHub">
+              <img src="https://cdn.simpleicons.org/github/d4d4c8" alt="GitHub">
+            </a>
+            <a class="sw-link" href="https://x.com/windscribeVPN" target="_blank" rel="noopener" title="Twitter">
+              <img src="https://cdn.simpleicons.org/x/d4d4c8" alt="Twitter">
+            </a>
+            <a class="sw-link" href="https://www.reddit.com/r/Windscribe/" target="_blank" rel="noopener" title="Reddit">
+              <img src="https://cdn.simpleicons.org/reddit/d4d4c8" alt="Reddit">
+            </a>
+          </div>
+        </div>
+        <span class="sw-desc" id="sd-windscribe">Open source · no logs · built-in firewall &amp; ad blocker · static IPs · generous free tier</span>
+      </li>
+
+    </ul>
+
+  </div>
+
+  <script>
+    const translations = {
+      en: {
+        label: 'software',
+        rtl: false,
+        items: {
+          'sd-audacious':   'Open source · lightweight · no network calls · no telemetry',
+          'sd-bitwarden':   'Open source · AES-256 E2E encrypted · zero-knowledge · self-hostable · independently audited',
+          'sd-borgbackup':  'Open source · AES-256 client-side encrypted · deduplicated · compressed · incremental backups',
+          'sd-brave':       'Open source · blocks ads & trackers by default · fingerprint randomisation · built-in Tor window',
+          'sd-darkfi':      'Open source · anonymous L1 blockchain · fully private transactions by default · p2p architecture · no trusted setup · ZK-proof based',
+          'sd-debian':      'Open source · no telemetry · no proprietary blobs by default · community audited · stable release cycle',
+          'sd-ente':        'Open source · E2E encrypted photos & auth · zero-knowledge · self-hostable · independently audited',
+          'sd-fossify':     'Open source · no tracking · no ads · no internet permissions · offline-first Android suite',
+          'sd-libretube':   'Open source · routes via Piped proxy · no Google account · no tracking · SponsorBlock built-in',
+          'sd-monero':      'Open source · privacy by default · stealth addresses · RingCT + Bulletproofs · untraceable transactions · fungible',
+          'sd-mullvad':     'Open source · strict no-logs · anonymous account · RAM-only servers · accepts Monero & cash · audited',
+          'sd-nextcloud':   'Open source · fully self-hosted · E2E encryption option · no third-party access · GDPR compliant',
+          'sd-notesnook':   'Open source · XChaCha20-Poly1305 E2E encrypted · zero-knowledge · self-hostable · independently audited',
+          'sd-proton':      'Open source · E2E encrypted mail, VPN, drive & calendar · zero-knowledge · Swiss jurisdiction · audited',
+          'sd-secret':      'Open source · privacy-preserving smart contracts · encrypted state by default · TEE-based confidential computing · programmable privacy',
+          'sd-signal':      'Open source · Signal Protocol E2E encryption · sealed sender · minimal metadata · disappearing messages',
+          'sd-thunderbird':  'Open source · OpenPGP & S/MIME built-in · no telemetry · no forced accounts',
+          'sd-timeshift':   'Open source · system snapshots · rsync or BTRFS · scheduled backups · instant rollback',
+          'sd-vlc':         'Open source · plays any format · no telemetry · no analytics · local playback only',
+          'sd-windscribe':  'Open source · no logs · built-in firewall & ad blocker · static IPs · generous free tier',
+        }
+      },
+      de: {
+        label: 'software',
+        rtl: false,
+        items: {
+          'sd-audacious':   'Open Source · leichtgewichtig · keine Netzwerkaufrufe · keine Telemetrie',
+          'sd-bitwarden':   'Open Source · AES-256 E2E-verschlüsselt · Zero-Knowledge · selbst-hostbar · unabhängig geprüft',
+          'sd-borgbackup':  'Open Source · AES-256 clientseitig verschlüsselt · dedupliziert · komprimiert · inkrementelle Backups',
+          'sd-brave':       'Open Source · blockiert Werbung & Tracker · Fingerprint-Zufallsverfahren · eingebautes Tor-Fenster',
+          'sd-darkfi':      'Open Source · anonyme L1-Blockchain · standardmäßig vollständig private Transaktionen · p2p-Architektur · kein Trusted Setup · ZK-Proof-basiert',
+          'sd-debian':      'Open Source · keine Telemetrie · keine proprietären Blobs · Community-geprüft · stabiler Release-Zyklus',
+          'sd-ente':        'Open Source · E2E-verschlüsselte Fotos & Auth · Zero-Knowledge · selbst-hostbar · unabhängig geprüft',
+          'sd-fossify':     'Open Source · kein Tracking · keine Werbung · keine Internet-Berechtigungen · Offline-zuerst Android-Suite',
+          'sd-libretube':   'Open Source · leitet über Piped-Proxy · kein Google-Konto · kein Tracking · SponsorBlock eingebaut',
+          'sd-monero':      'Open Source · Privatsphäre standardmäßig · Stealth-Adressen · RingCT + Bulletproofs · nicht nachverfolgbare Transaktionen · fungibel',
+          'sd-mullvad':     'Open Source · striktes No-Log · anonymes Konto · RAM-only Server · akzeptiert Monero & Bargeld · geprüft',
+          'sd-nextcloud':   'Open Source · vollständig selbst-gehostet · E2E-Verschlüsselung möglich · kein Drittanbieter-Zugriff · DSGVO-konform',
+          'sd-notesnook':   'Open Source · XChaCha20-Poly1305 E2E-verschlüsselt · Zero-Knowledge · selbst-hostbar · unabhängig geprüft',
+          'sd-proton':      'Open Source · E2E-verschlüsselt: Mail, VPN, Drive & Kalender · Zero-Knowledge · Schweizer Rechtsprechung · geprüft',
+          'sd-secret':      'Open Source · datenschutzwahrende Smart Contracts · standardmäßig verschlüsselter Zustand · TEE-basiertes vertrauliches Computing · programmierbare Privatsphäre',
+          'sd-signal':      'Open Source · Signal-Protokoll E2E-Verschlüsselung · Sealed Sender · minimale Metadaten · verschwindende Nachrichten',
+          'sd-thunderbird':  'Open Source · OpenPGP & S/MIME eingebaut · keine Telemetrie · kein Kontopflicht',
+          'sd-timeshift':   'Open Source · Systemschnappschüsse · rsync oder BTRFS · geplante Backups · sofortiges Rollback',
+          'sd-vlc':         'Open Source · spielt jedes Format · keine Telemetrie · keine Analytik · nur lokale Wiedergabe',
+          'sd-windscribe':  'Open Source · keine Logs · eingebaute Firewall & Werbeblocker · statische IPs · großzügiger Gratis-Tarif',
+        }
+      },
+      fr: {
+        label: 'logiciels',
+        rtl: false,
+        items: {
+          'sd-audacious':   'Open source · léger · aucun appel réseau · aucune télémétrie',
+          'sd-bitwarden':   'Open source · chiffré E2E AES-256 · zéro connaissance · auto-hébergeable · audité indépendamment',
+          'sd-borgbackup':  'Open source · chiffré AES-256 côté client · dédupliqué · compressé · sauvegardes incrémentales',
+          'sd-brave':       'Open source · bloque pubs & traceurs par défaut · randomisation empreinte · fenêtre Tor intégrée',
+          'sd-darkfi':      'Open source · blockchain L1 anonyme · transactions entièrement privées par défaut · architecture p2p · sans trusted setup · basé sur les ZK-proofs',
+          'sd-debian':      'Open source · aucune télémétrie · aucun blob propriétaire · audité par la communauté · cycle de publication stable',
+          'sd-ente':        'Open source · photos & auth chiffrées E2E · zéro connaissance · auto-hébergeable · audité indépendamment',
+          'sd-fossify':     'Open source · aucun suivi · aucune pub · aucune permission internet · suite Android hors-ligne en priorité',
+          'sd-libretube':   'Open source · passe par proxy Piped · sans compte Google · aucun suivi · SponsorBlock intégré',
+          'sd-monero':      'Open source · confidentialité par défaut · adresses furtives · RingCT + Bulletproofs · transactions intraçables · fongible',
+          'sd-mullvad':     'Open source · zéro log strict · compte anonyme · serveurs RAM uniquement · accepte Monero & espèces · audité',
+          'sd-nextcloud':   'Open source · entièrement auto-hébergé · option de chiffrement E2E · aucun accès tiers · conforme RGPD',
+          'sd-notesnook':   'Open source · chiffré E2E XChaCha20-Poly1305 · zéro connaissance · auto-hébergeable · audité indépendamment',
+          'sd-proton':      'Open source · mail, VPN, drive & agenda chiffrés E2E · zéro connaissance · juridiction suisse · audité',
+          'sd-secret':      'Open source · contrats intelligents respectueux de la vie privée · état chiffré par défaut · informatique confidentielle TEE · confidentialité programmable',
+          'sd-signal':      'Open source · chiffrement E2E protocole Signal · expéditeur scellé · métadonnées minimales · messages éphémères',
+          'sd-thunderbird':  'Open source · OpenPGP & S/MIME intégrés · aucune télémétrie · aucun compte obligatoire',
+          'sd-timeshift':   'Open source · instantanés système · rsync ou BTRFS · sauvegardes planifiées · rollback instantané',
+          'sd-vlc':         'Open source · lit tous les formats · aucune télémétrie · aucune analytique · lecture locale uniquement',
+          'sd-windscribe':  'Open source · aucun log · pare-feu & bloqueur de pub intégrés · IPs statiques · offre gratuite généreuse',
+        }
+      },
+      es: {
+        label: 'software',
+        rtl: false,
+        items: {
+          'sd-audacious':   'Código abierto · ligero · sin llamadas de red · sin telemetría',
+          'sd-bitwarden':   'Código abierto · cifrado E2E AES-256 · conocimiento cero · auto-alojable · auditado independientemente',
+          'sd-borgbackup':  'Código abierto · cifrado AES-256 en el cliente · deduplicado · comprimido · copias de seguridad incrementales',
+          'sd-brave':       'Código abierto · bloquea anuncios & rastreadores · randomización de huella digital · ventana Tor integrada',
+          'sd-darkfi':      'Código abierto · blockchain L1 anónima · transacciones completamente privadas por defecto · arquitectura p2p · sin trusted setup · basado en ZK-proofs',
+          'sd-debian':      'Código abierto · sin telemetría · sin blobs propietarios · auditado por la comunidad · ciclo de lanzamiento estable',
+          'sd-ente':        'Código abierto · fotos & auth cifradas E2E · conocimiento cero · auto-alojable · auditado independientemente',
+          'sd-fossify':     'Código abierto · sin rastreo · sin anuncios · sin permisos de internet · suite Android sin conexión prioritaria',
+          'sd-libretube':   'Código abierto · enruta por proxy Piped · sin cuenta Google · sin rastreo · SponsorBlock integrado',
+          'sd-monero':      'Código abierto · privacidad por defecto · direcciones stealth · RingCT + Bulletproofs · transacciones no rastreables · fungible',
+          'sd-mullvad':     'Código abierto · sin registros estricto · cuenta anónima · servidores solo RAM · acepta Monero & efectivo · auditado',
+          'sd-nextcloud':   'Código abierto · totalmente auto-alojado · opción de cifrado E2E · sin acceso de terceros · conforme RGPD',
+          'sd-notesnook':   'Código abierto · cifrado E2E XChaCha20-Poly1305 · conocimiento cero · auto-alojable · auditado independientemente',
+          'sd-proton':      'Código abierto · correo, VPN, drive & calendario cifrados E2E · conocimiento cero · jurisdicción suiza · auditado',
+          'sd-secret':      'Código abierto · contratos inteligentes con privacidad · estado cifrado por defecto · computación confidencial TEE · privacidad programable',
+          'sd-signal':      'Código abierto · cifrado E2E protocolo Signal · remitente sellado · metadatos mínimos · mensajes que desaparecen',
+          'sd-thunderbird':  'Código abierto · OpenPGP & S/MIME integrados · sin telemetría · sin cuentas obligatorias',
+          'sd-timeshift':   'Código abierto · instantáneas del sistema · rsync o BTRFS · copias programadas · rollback instantáneo',
+          'sd-vlc':         'Código abierto · reproduce cualquier formato · sin telemetría · sin analíticas · solo reproducción local',
+          'sd-windscribe':  'Código abierto · sin registros · firewall & bloqueador de anuncios integrado · IPs estáticas · plan gratuito generoso',
+        }
+      },
+      zh: {
+        label: '软件',
+        rtl: false,
+        items: {
+          'sd-audacious':   '开源 · 轻量 · 无网络请求 · 无遥测',
+          'sd-bitwarden':   '开源 · AES-256 E2E加密 · 零知识 · 可自托管 · 独立审计',
+          'sd-borgbackup':  '开源 · 客户端AES-256加密 · 去重 · 压缩 · 增量备份',
+          'sd-brave':       '开源 · 默认拦截广告&追踪器 · 指纹随机化 · 内置Tor窗口',
+          'sd-darkfi':      '开源 · 匿名L1区块链 · 默认完全私密交易 · p2p架构 · 无需可信设置 · 基于ZK证明',
+          'sd-debian':      '开源 · 无遥测 · 无专有二进制 · 社区审计 · 稳定发布周期',
+          'sd-ente':        '开源 · 照片&验证E2E加密 · 零知识 · 可自托管 · 独立审计',
+          'sd-fossify':     '开源 · 无追踪 · 无广告 · 无网络权限 · 离线优先Android应用套件',
+          'sd-libretube':   '开源 · 通过Piped代理路由 · 无需Google账号 · 无追踪 · 内置SponsorBlock',
+          'sd-monero':      '开源 · 默认隐私 · 隐身地址 · RingCT + Bulletproofs · 不可追踪交易 · 可替代',
+          'sd-mullvad':     '开源 · 严格零日志 · 匿名账户 · 纯内存服务器 · 接受Monero&现金 · 已审计',
+          'sd-nextcloud':   '开源 · 完全自托管 · E2E加密选项 · 无第三方访问 · 符合GDPR',
+          'sd-notesnook':   '开源 · XChaCha20-Poly1305 E2E加密 · 零知识 · 可自托管 · 独立审计',
+          'sd-proton':      '开源 · 邮件、VPN、网盘&日历E2E加密 · 零知识 · 瑞士司法管辖 · 已审计',
+          'sd-secret':      '开源 · 隐私保护智能合约 · 默认加密状态 · 基于TEE的机密计算 · 可编程隐私',
+          'sd-signal':      '开源 · Signal协议E2E加密 · 密封发送者 · 最少元数据 · 阅后即焚消息',
+          'sd-thunderbird':  '开源 · 内置OpenPGP&S/MIME · 无遥测 · 无强制账号',
+          'sd-timeshift':   '开源 · 系统快照 · rsync或BTRFS · 定时备份 · 即时回滚',
+          'sd-vlc':         '开源 · 播放任意格式 · 无遥测 · 无分析 · 仅本地播放',
+          'sd-windscribe':  '开源 · 零日志 · 内置防火墙&广告拦截 · 静态IP · 慷慨免费套餐',
+        }
+      },
+      ar: {
+        label: 'البرامج',
+        rtl: true,
+        items: {
+          'sd-audacious':   'مفتوح المصدر · خفيف الوزن · بدون طلبات شبكة · بدون تتبع بيانات',
+          'sd-bitwarden':   'مفتوح المصدر · تشفير E2E بـ AES-256 · صفر معرفة · يمكن استضافته ذاتياً · مراجعة مستقلة',
+          'sd-borgbackup':  'مفتوح المصدر · تشفير AES-256 على الجهاز · إزالة التكرار · ضغط البيانات · نسخ احتياطي تزايدي',
+          'sd-brave':       'مفتوح المصدر · يحجب الإعلانات والمتتبعين · عشوائية البصمة · نافذة Tor مدمجة',
+          'sd-darkfi':      'مفتوح المصدر · بلوكشين L1 مجهول · معاملات خاصة كلياً افتراضياً · بنية p2p · بدون إعداد موثوق · يعتمد على ZK-proof',
+          'sd-debian':      'مفتوح المصدر · بدون تتبع بيانات · بدون مكونات مغلقة · مراجعة مجتمعية · دورة إصدار مستقرة',
+          'sd-ente':        'مفتوح المصدر · صور ومصادقة مشفرة E2E · صفر معرفة · يمكن استضافته ذاتياً · مراجعة مستقلة',
+          'sd-fossify':     'مفتوح المصدر · بدون تتبع · بدون إعلانات · بدون أذونات إنترنت · تطبيقات أندرويد دون إنترنت',
+          'sd-libretube':   'مفتوح المصدر · يعمل عبر وسيط Piped · بدون حساب Google · بدون تتبع · SponsorBlock مدمج',
+          'sd-monero':      'مفتوح المصدر · خصوصية افتراضية · عناوين مخفية · RingCT + Bulletproofs · معاملات غير قابلة للتتبع · قابل للاستبدال',
+          'sd-mullvad':     'مفتوح المصدر · صفر سجلات · حساب مجهول · خوادم RAM فقط · يقبل Monero والنقد · مراجعة مستقلة',
+          'sd-nextcloud':   'مفتوح المصدر · استضافة ذاتية كاملة · خيار تشفير E2E · بدون وصول طرف ثالث · متوافق مع GDPR',
+          'sd-notesnook':   'مفتوح المصدر · تشفير E2E بـ XChaCha20-Poly1305 · صفر معرفة · يمكن استضافته ذاتياً · مراجعة مستقلة',
+          'sd-proton':      'مفتوح المصدر · بريد وVPN وتخزين وتقويم مشفرة E2E · صفر معرفة · قانون سويسري · مراجعة مستقلة',
+          'sd-secret':      'مفتوح المصدر · عقود ذكية لحماية الخصوصية · حالة مشفرة افتراضياً · حوسبة سرية TEE · خصوصية قابلة للبرمجة',
+          'sd-signal':      'مفتوح المصدر · تشفير E2E ببروتوكول Signal · مُرسِل مختوم · حد أدنى من البيانات · رسائل مؤقتة',
+          'sd-thunderbird':  'مفتوح المصدر · OpenPGP وS/MIME مدمجان · بدون تتبع بيانات · بدون حسابات إجبارية',
+          'sd-timeshift':   'مفتوح المصدر · لقطات النظام · rsync أو BTRFS · نسخ احتياطي مجدول · استرجاع فوري',
+          'sd-vlc':         'مفتوح المصدر · يشغل أي تنسيق · بدون تتبع بيانات · بدون تحليلات · تشغيل محلي فقط',
+          'sd-windscribe':  'مفتوح المصدر · بدون سجلات · جدار حماية وحاجب إعلانات مدمج · IPs ثابتة · خطة مجانية سخية',
+        }
+      },
+      fa: {
+        label: 'نرم‌افزار',
+        rtl: true,
+        items: {
+          'sd-audacious':   'متن‌باز · سبک · بدون درخواست شبکه · بدون تله‌متری',
+          'sd-bitwarden':   'متن‌باز · رمزنگاری E2E با AES-256 · صفر دانش · قابل خود-میزبانی · ممیزی مستقل',
+          'sd-borgbackup':  'متن‌باز · رمزنگاری AES-256 در سمت کلاینت · حذف تکراری · فشرده‌سازی · پشتیبان‌گیری تدریجی',
+          'sd-brave':       'متن‌باز · مسدودسازی تبلیغات و ردیاب‌ها · تصادفی‌سازی اثر انگشت · پنجره Tor داخلی',
+          'sd-darkfi':      'متن‌باز · بلاکچین L1 ناشناس · تراکنش‌های کاملاً خصوصی به صورت پیش‌فرض · معماری p2p · بدون تنظیم قابل اعتماد · مبتنی بر ZK-proof',
+          'sd-debian':      'متن‌باز · بدون تله‌متری · بدون اجزای اختصاصی · ممیزی توسط جامعه · چرخه انتشار پایدار',
+          'sd-ente':        'متن‌باز · عکس‌ها و احراز هویت رمزنگاری‌شده E2E · صفر دانش · قابل خود-میزبانی · ممیزی مستقل',
+          'sd-fossify':     'متن‌باز · بدون ردیابی · بدون تبلیغات · بدون مجوز اینترنت · مجموعه اندروید آفلاین‌محور',
+          'sd-libretube':   'متن‌باز · مسیریابی از طریق پروکسی Piped · بدون حساب Google · بدون ردیابی · SponsorBlock داخلی',
+          'sd-monero':      'متن‌باز · حریم خصوصی پیش‌فرض · آدرس‌های مخفی · RingCT + Bulletproofs · تراکنش‌های غیرقابل ردیابی · قابل تعویض',
+          'sd-mullvad':     'متن‌باز · بدون لاگ · حساب ناشناس · سرورهای فقط RAM · پذیرش Monero و نقد · ممیزی شده',
+          'sd-nextcloud':   'متن‌باز · خود-میزبانی کامل · گزینه رمزنگاری E2E · بدون دسترسی شخص ثالث · مطابق GDPR',
+          'sd-notesnook':   'متن‌باز · رمزنگاری E2E با XChaCha20-Poly1305 · صفر دانش · قابل خود-میزبانی · ممیزی مستقل',
+          'sd-proton':      'متن‌باز · ایمیل، VPN، درایو و تقویم رمزنگاری‌شده E2E · صفر دانش · حوزه قضایی سوئیس · ممیزی شده',
+          'sd-secret':      'متن‌باز · قراردادهای هوشمند حریم‌خصوصی‌محور · حالت رمزنگاری‌شده پیش‌فرض · محاسبات محرمانه TEE · حریم خصوصی قابل برنامه‌ریزی',
+          'sd-signal':      'متن‌باز · رمزنگاری E2E پروتکل Signal · فرستنده مهر و موم‌شده · حداقل متادیتا · پیام‌های خودحذف‌شونده',
+          'sd-thunderbird':  'متن‌باز · OpenPGP و S/MIME داخلی · بدون تله‌متری · بدون حساب اجباری',
+          'sd-timeshift':   'متن‌باز · عکس‌های سیستم · rsync یا BTRFS · پشتیبان‌گیری برنامه‌ریزی‌شده · بازگشت فوری',
+          'sd-vlc':         'متن‌باز · پخش هر فرمتی · بدون تله‌متری · بدون تحلیلگر · فقط پخش محلی',
+          'sd-windscribe':  'متن‌باز · بدون لاگ · فایروال و مسدودساز تبلیغات داخلی · IP ثابت · طرح رایگان سخاوتمندانه',
+        }
+      }
+    };
+
+    function setLang(code) {
+      const t = translations[code];
+      if (!t) return;
+
+      document.getElementById('label-sw').textContent = t.label;
+      document.documentElement.lang = code;
+      document.documentElement.dir = t.rtl ? 'rtl' : 'ltr';
+
+      Object.entries(t.items).forEach(([id, text]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      });
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase() === code);
+      });
+    }
+  </script>
+</body>
+</html>
