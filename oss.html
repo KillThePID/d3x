@@ -75,13 +75,13 @@
 
     .lang-btn {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
+      font-size: 7.6px;
       font-weight: 400;
       letter-spacing: 0.08em;
       color: var(--muted);
       background: var(--surface);
       border: 1px solid var(--border);
-      padding: 4px 7px;
+      padding: 3.04px 5.32px;
       cursor: pointer;
       transition: border-color 0.15s, color 0.15s;
       user-select: none;
@@ -197,10 +197,12 @@
 
     @media (max-width: 700px) {
       .container { padding: 24px 16px; }
+      .lang-bar  { justify-content: center; }
     }
 
     @media (min-width: 701px) {
-      .sw-desc { font-size: 14px; }
+      body    { font-size: 15px; }
+      .sw-desc { font-size: 15px; }
     }
   </style>
 </head>
@@ -208,13 +210,13 @@
   <div class="container">
 
     <div class="lang-bar">
-      <button class="lang-btn active" onclick="setLang('en')">EN</button>
-      <button class="lang-btn"        onclick="setLang('de')">DE</button>
-      <button class="lang-btn"        onclick="setLang('fr')">FR</button>
-      <button class="lang-btn"        onclick="setLang('es')">ES</button>
-      <button class="lang-btn"        onclick="setLang('zh')">ZH</button>
-      <button class="lang-btn"        onclick="setLang('ar')">AR</button>
-      <button class="lang-btn"        onclick="setLang('fa')">FA</button>
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">English</button>
+      <button class="lang-btn"        data-lang="de" onclick="setLang('de')">Deutsch</button>
+      <button class="lang-btn"        data-lang="fr" onclick="setLang('fr')">Français</button>
+      <button class="lang-btn"        data-lang="es" onclick="setLang('es')">Español</button>
+      <button class="lang-btn"        data-lang="zh" onclick="setLang('zh')">中文</button>
+      <button class="lang-btn"        data-lang="ar" onclick="setLang('ar')">العربية</button>
+      <button class="lang-btn"        data-lang="fa" onclick="setLang('fa')">فارسی</button>
     </div>
 
     <div class="section-label" id="label-sw">software</div>
@@ -680,7 +682,7 @@
           'sd-proton':      'Open Source · E2E-verschlüsselt: Mail, VPN, Drive & Kalender · Zero-Knowledge · Schweizer Rechtsprechung · geprüft',
           'sd-secret':      'Open Source · datenschutzwahrende Smart Contracts · standardmäßig verschlüsselter Zustand · TEE-basiertes vertrauliches Computing · programmierbare Privatsphäre',
           'sd-signal':      'Open Source · Signal-Protokoll E2E-Verschlüsselung · Sealed Sender · minimale Metadaten · verschwindende Nachrichten',
-          'sd-thunderbird':  'Open Source · OpenPGP & S/MIME eingebaut · keine Telemetrie · kein Kontopflicht',
+          'sd-thunderbird':  'Open Source · OpenPGP & S/MIME eingebaut · keine Telemetrie · kein Kontozwang',
           'sd-timeshift':   'Open Source · Systemschnappschüsse · rsync oder BTRFS · geplante Backups · sofortiges Rollback',
           'sd-vlc':         'Open Source · spielt jedes Format · keine Telemetrie · keine Analytik · nur lokale Wiedergabe',
           'sd-windscribe':  'Open Source · keine Logs · eingebaute Firewall & Werbeblocker · statische IPs · großzügiger Gratis-Tarif',
@@ -832,7 +834,7 @@
       });
 
       document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.toLowerCase() === code);
+        btn.classList.toggle('active', btn.dataset.lang === code);
       });
     }
   </script>
