@@ -190,6 +190,8 @@
       line-height: 1.85;
     }
 
+    .content.rtl { direction: rtl; text-align: right; }
+
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -219,6 +221,7 @@
       <button class="lang-btn"        data-lang="fa" onclick="setLang('fa')">فارسی</button>
     </div>
 
+    <div class="content" id="content">
     <div class="section-label" id="label-sw">software</div>
 
     <ul class="sw-list" id="sw-list">
@@ -632,6 +635,8 @@
 
     </ul>
 
+    </div><!-- /content -->
+
   </div>
 
   <script>
@@ -826,7 +831,7 @@
 
       document.getElementById('label-sw').textContent = t.label;
       document.documentElement.lang = code;
-      document.documentElement.dir = t.rtl ? 'rtl' : 'ltr';
+      document.getElementById('content').className = 'content' + (t.rtl ? ' rtl' : '');
 
       Object.entries(t.items).forEach(([id, text]) => {
         const el = document.getElementById(id);
