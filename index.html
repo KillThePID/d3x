@@ -76,13 +76,13 @@
 
     .lang-btn {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
+      font-size: 7.6px;
       font-weight: 400;
       letter-spacing: 0.08em;
       color: var(--muted);
       background: var(--surface);
       border: 1px solid var(--border);
-      padding: 4px 7px;
+      padding: 3.04px 5.32px;
       cursor: pointer;
       transition: border-color 0.15s, color 0.15s;
       user-select: none;
@@ -137,7 +137,8 @@
     .bio a:hover { border-color: #58a6f5; }
 
     @media (min-width: 701px) {
-      .bio { font-size: 14px; }
+      body { font-size: 15px; }
+      .bio { font-size: 15px; }
     }
 
     /* Links */
@@ -223,6 +224,7 @@
     @media (max-width: 700px) {
       .container { padding: 24px 16px; }
       .main      { grid-template-columns: 1fr; gap: 32px; }
+      .lang-bar  { justify-content: center; }
     }
   </style>
 </head>
@@ -230,13 +232,13 @@
   <div class="container">
 
     <div class="lang-bar">
-      <button class="lang-btn active" onclick="setLang('en')">EN</button>
-      <button class="lang-btn"        onclick="setLang('de')">DE</button>
-      <button class="lang-btn"        onclick="setLang('fr')">FR</button>
-      <button class="lang-btn"        onclick="setLang('es')">ES</button>
-      <button class="lang-btn"        onclick="setLang('zh')">ZH</button>
-      <button class="lang-btn"        onclick="setLang('ar')">AR</button>
-      <button class="lang-btn"        onclick="setLang('fa')">FA</button>
+      <button class="lang-btn active" data-lang="en" onclick="setLang('en')">English</button>
+      <button class="lang-btn"        data-lang="de" onclick="setLang('de')">Deutsch</button>
+      <button class="lang-btn"        data-lang="fr" onclick="setLang('fr')">Français</button>
+      <button class="lang-btn"        data-lang="es" onclick="setLang('es')">Español</button>
+      <button class="lang-btn"        data-lang="zh" onclick="setLang('zh')">中文</button>
+      <button class="lang-btn"        data-lang="ar" onclick="setLang('ar')">العربية</button>
+      <button class="lang-btn"        data-lang="fa" onclick="setLang('fa')">فارسی</button>
     </div>
 
     <div class="main">
@@ -284,7 +286,7 @@
           </li>
 
           <li class="link-item">
-            <a href="https://gist.github.com/KillThePID" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/KillThePID" target="_blank" rel="noopener noreferrer">
               <div class="link-icon">
                 <svg width="15" height="15" viewBox="0 0 98 96" fill="currentColor">
                   <path fill-rule="evenodd" clip-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z"/>
@@ -347,43 +349,43 @@
         about: 'über mich',
         find: 'kontakt',
         rtl: false,
-        bio: `<p>Hallo, ich bin Dexter. Ich habe zunächst als Systemadministrator im Bildungs- und Technologiebereich gearbeitet, bevor ich vollständig in den Web3-Bereich gewechselt bin. Derzeit arbeite ich als Community Operations Manager für ein KI-Unternehmen.</p>
-<p>Ich bin auch ein überzeugter Befürworter von FOSS und datenschutzfreundlichen Produkten. Eine Liste der Software, die ich nutze und empfehle, findest du <a href="oss.html">hier</a>. Melde dich gern, wenn du etwas Cooles baust – ich bin immer offen für ein Gespräch.</p>`
+        bio: `<p>Hallo, ich bin Dexter. Ich habe zunächst als Systemadministrator im Bildungs- und Technologiebereich gearbeitet, bevor ich vollständig in den Web3-Bereich gewechselt bin. Derzeit arbeite ich als Community-Operations-Manager für ein KI-Unternehmen.</p>
+<p>Ich bin außerdem ein überzeugter Befürworter von FOSS und datenschutzfreundlichen Produkten. Eine Liste der Software, die ich nutze und empfehle, findest du <a href="oss.html">hier</a>. Melde dich gerne, wenn du an etwas Spannendem arbeitest – ich freue mich immer über ein Gespräch.</p>`
       },
       fr: {
         about: 'à propos',
         find: 'me trouver',
         rtl: false,
         bio: `<p>Bonjour, je suis Dexter. J'ai d'abord travaillé comme administrateur systèmes dans le secteur de l'éducation et de la tech, avant de me consacrer à plein temps au monde du web3. Je travaille aujourd'hui comme responsable des opérations communautaires pour une entreprise d'IA.</p>
-<p>Je suis également un fervent défenseur des logiciels libres (FOSS) et des produits respectueux de la vie privée. Vous pouvez trouver une liste des logiciels que j'utilise et recommande <a href="oss.html">ici</a>. N'hésitez pas à me contacter si vous construisez quelque chose de cool – toujours partant pour discuter.</p>`
+<p>Je suis également un fervent défenseur des logiciels libres (FOSS) et des produits respectueux de la vie privée. Vous pouvez trouver une liste des logiciels que j'utilise et recommande <a href="oss.html">ici</a>. N'hésitez pas à me contacter si vous construisez quelque chose d'intéressant – toujours partant pour discuter.</p>`
       },
       es: {
         about: 'sobre mí',
         find: 'encuéntrame',
         rtl: false,
-        bio: `<p>Hola, soy Dexter. Trabajé como administrador de sistemas en el sector educativo y tecnológico antes de pasarme a tiempo completo al espacio web3. Actualmente trabajo como gestor de operaciones comunitarias para una empresa de IA.</p>
+        bio: `<p>Hola, soy Dexter. Trabajé como administrador de sistemas en el sector educativo y tecnológico antes de dedicarme a tiempo completo al espacio web3. Actualmente trabajo como gestor de operaciones comunitarias para una empresa de inteligencia artificial.</p>
 <p>También soy un firme defensor del software libre (FOSS) y los productos que preservan la privacidad. Puedes encontrar una lista del software que uso y recomiendo <a href="oss.html">aquí</a>. No dudes en contactarme si estás construyendo algo interesante – siempre dispuesto a charlar.</p>`
       },
       zh: {
         about: '关于我',
         find: '联系我',
         rtl: false,
-        bio: `<p>你好，我是 Dexter。我曾在教育/科技领域担任系统管理员，后来全职转入 Web3 领域。目前，我在一家 AI 公司担任社区运营经理。</p>
-<p>我也是 FOSS 和隐私保护产品的坚定倡导者。你可以在<a href="oss.html">这里</a>找到我使用和推荐的软件列表。如果你正在构建有趣的东西，欢迎随时联系我——我总是乐于交流。</p>`
+        bio: `<p>你好，我是 Dexter。我曾在教育与科技领域担任系统管理员，后来全职转入 Web3 领域。目前，我在一家人工智能公司担任社区运营经理。</p>
+<p>我同时也是自由及开源软件（FOSS）和隐私保护产品的坚定支持者。你可以在<a href="oss.html">这里</a>找到我使用和推荐的软件列表。如果你正在打造有趣的东西，欢迎随时联系我——我始终乐于交流。</p>`
       },
       ar: {
         about: 'عني',
         find: 'تواصل معي',
         rtl: true,
-        bio: `<p>مرحباً، أنا Dexter. عملت سابقاً كمدير أنظمة في مجال التعليم والتقنية، قبل أن أنتقل بشكل كامل إلى عالم Web3. أقضي أيامي حالياً في العمل كمدير عمليات مجتمع لشركة ذكاء اصطناعي.</p>
-<p>أنا أيضاً مدافع قوي عن البرمجيات مفتوحة المصدر (FOSS) والمنتجات التي تحافظ على الخصوصية. يمكنك إيجاد قائمة بالبرامج التي أستخدمها وأوصي بها <a href="oss.html">هنا</a>. لا تتردد في التواصل إذا كنت تبني شيئاً رائعاً – دائماً متحمس للحديث.</p>`
+        bio: `<p>مرحباً، أنا Dexter. عملت سابقاً كمدير أنظمة في مجال التعليم والتقنية، قبل أن أنتقل بشكل كامل إلى عالم Web3. أقضي أيامي حالياً في العمل كمدير عمليات المجتمع لشركة ذكاء اصطناعي.</p>
+<p>أنا أيضاً مدافع شغوف عن البرمجيات مفتوحة المصدر (FOSS) والمنتجات التي تصون الخصوصية. يمكنك الاطلاع على قائمة البرامج التي أستخدمها وأوصي بها <a href="oss.html">هنا</a>. لا تتردد في التواصل معي إن كنت تبني شيئاً رائعاً – دائماً سعيد بالحديث.</p>`
       },
       fa: {
         about: 'درباره من',
         find: 'پیدایم کن',
         rtl: true,
-        bio: `<p>سلام، من Dexter هستم. پیش از ورود تمام‌وقت به فضای Web3، به عنوان مدیر سیستم در حوزه آموزش و فناوری کار می‌کردم. در حال حاضر به عنوان مدیر عملیات جامعه برای یک شرکت هوش مصنوعی فعالیت می‌کنم.</p>
-<p>من همچنین یک حامی جدی نرم‌افزارهای متن‌باز (FOSS) و محصولات حفظ حریم خصوصی هستم. فهرست نرم‌افزارهایی که استفاده می‌کنم و توصیه می‌دهم را می‌توانید <a href="oss.html">اینجا</a> بیابید. اگر چیز جالبی می‌سازید خوشحال می‌شوم صحبت کنیم.</p>`
+        bio: `<p>سلام، من Dexter هستم. پیش از ورود تمام‌وقت به فضای Web3، به عنوان مدیر سیستم در حوزه آموزش و فناوری فعالیت می‌کردم. در حال حاضر به عنوان مدیر عملیات جامعه در یک شرکت هوش مصنوعی کار می‌کنم.</p>
+<p>من همچنین یک حامی جدی نرم‌افزارهای آزاد و متن‌باز (FOSS) و محصولات حافظ حریم خصوصی هستم. فهرست نرم‌افزارهایی که استفاده می‌کنم و توصیه می‌دهم را می‌توانید <a href="oss.html">اینجا</a> ببینید. اگر روی چیز جالبی کار می‌کنید، خوشحال می‌شوم با هم صحبت کنیم.</p>`
       }
     };
 
@@ -396,7 +398,7 @@
       document.getElementById('label-find').textContent = t.find;
       document.documentElement.lang = code;
       document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.toLowerCase() === code);
+        btn.classList.toggle('active', btn.dataset.lang === code);
       });
     }
   </script>
